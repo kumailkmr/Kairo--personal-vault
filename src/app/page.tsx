@@ -52,6 +52,7 @@ import { AIOpsLayout } from "@/components/ai-ops/AIOpsLayout";
 import { SettingsWorkspace } from "@/components/settings/SettingsWorkspace";
 import { GoalsWorkspace } from "@/components/goals/GoalsWorkspace";
 import { PersonalWorkspace } from "@/components/personal/PersonalWorkspace";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export default function HomePage() {
   const [appState, setAppState] = useState<"landing" | "auth" | "intro" | "skeletal" | "active">("landing");
@@ -134,19 +135,19 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
       );
 
     case "/analytics":
-      return <AnalyticsDashboard />;
+      return <ErrorBoundary moduleName="Analytics"><AnalyticsDashboard /></ErrorBoundary>;
 
     case "/meetings":
-      return <MeetingsDashboardLayout />;
+      return <ErrorBoundary moduleName="Meetings"><MeetingsDashboardLayout /></ErrorBoundary>;
 
     case "/clients":
-      return <ClientsDashboardLayout />;
+      return <ErrorBoundary moduleName="CRM"><ClientsDashboardLayout /></ErrorBoundary>;
 
     case "/documents":
-      return <DocumentsWorkspaceLayout />;
+      return <ErrorBoundary moduleName="Documents"><DocumentsWorkspaceLayout /></ErrorBoundary>;
 
     case "/ai-ops":
-      return <AIOpsLayout />;
+      return <ErrorBoundary moduleName="AI Ops"><AIOpsLayout /></ErrorBoundary>;
 
     case "/notifications":
       return (
@@ -161,13 +162,13 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
       );
 
     case "/settings":
-      return <SettingsWorkspace />;
+      return <ErrorBoundary moduleName="Settings"><SettingsWorkspace /></ErrorBoundary>;
 
     case "/goals":
-      return <GoalsWorkspace />;
+      return <ErrorBoundary moduleName="Goals Matrix"><GoalsWorkspace /></ErrorBoundary>;
 
     case "/personal":
-      return <PersonalWorkspace />;
+      return <ErrorBoundary moduleName="Life OS"><PersonalWorkspace /></ErrorBoundary>;
 
     case "/clients":
       return (
