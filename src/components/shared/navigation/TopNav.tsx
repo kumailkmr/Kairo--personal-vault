@@ -5,6 +5,7 @@ import { Search, Bell, Menu, Check, Cpu, Calendar, AlertCircle } from "lucide-re
 import { MOCK_USER, MOCK_NOTIFICATIONS } from "@/mock";
 import { cn } from "@/utils/cn";
 import { useToast } from "@/hooks/useToast";
+import { SystemStatusIndicator } from "./SystemStatusIndicator";
 
 export interface TopNavProps {
   onToggleSidebar: () => void;
@@ -76,6 +77,8 @@ export const TopNav: React.FC<TopNavProps> = ({
       {/* Utilities: Notifications & Profile */}
       <div className="flex items-center gap-4.5 shrink-0">
         
+        <SystemStatusIndicator status="synchronized" />
+
         {/* Notification Bell with Overlay Panel */}
         <div className="relative">
           <button

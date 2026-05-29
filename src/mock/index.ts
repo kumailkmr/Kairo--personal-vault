@@ -153,7 +153,9 @@ export const MOCK_NOTIFICATIONS: NotificationItem[] = [
     message: "Sentiment-based Lead Scoring analyzer succeeded with 95.8% accuracy.",
     time: "2 mins ago",
     read: false,
-    type: "ai"
+    type: "ai",
+    priority: "standard",
+    actions: [{ label: "View Report", actionKey: "view_report", primary: true }]
   },
   {
     id: "n-2",
@@ -161,7 +163,9 @@ export const MOCK_NOTIFICATIONS: NotificationItem[] = [
     message: "Automated Lead Funnel Architect has hit 90% progress and requires review.",
     time: "1 hour ago",
     read: false,
-    type: "deadline"
+    type: "project",
+    priority: "important",
+    actions: [{ label: "Review", actionKey: "review", primary: true }, { label: "Snooze", actionKey: "snooze" }]
   },
   {
     id: "n-3",
@@ -169,8 +173,54 @@ export const MOCK_NOTIFICATIONS: NotificationItem[] = [
     message: "Marcus Aurelius from Stoic Investments completed onboarding setup.",
     time: "4 hours ago",
     read: true,
-    type: "activity"
+    type: "client",
+    priority: "standard"
+  },
+  {
+    id: "n-4",
+    title: "Invoice Paid",
+    message: "Aetherius Capital has paid Invoice #INV-2026-042 for $48,000.",
+    time: "Yesterday",
+    read: true,
+    type: "revenue",
+    priority: "standard"
+  },
+  {
+    id: "n-5",
+    title: "Meeting Starting Soon",
+    message: "Quarterly Revenue Review with David Goggins starts in 10 minutes.",
+    time: "Just now",
+    read: false,
+    type: "meeting",
+    priority: "important",
+    actions: [{ label: "Join Meet", actionKey: "join_meet", primary: true }]
+  },
+  {
+    id: "n-6",
+    title: "Critical System Sync Failure",
+    message: "Google Workspace calendar sync failed. Re-authentication required.",
+    time: "Yesterday",
+    read: false,
+    type: "system",
+    priority: "critical",
+    actions: [{ label: "Re-authenticate", actionKey: "auth", primary: true }]
   }
+];
+
+export interface TimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  type: "created" | "updated" | "milestone" | "alert" | "system";
+  entityName?: string;
+}
+
+export const MOCK_TIMELINE: TimelineEvent[] = [
+  { id: "t-1", title: "Client Created", description: "Marcus Aurelius profile established.", time: "10:30 AM", type: "created", entityName: "Stoic Investments" },
+  { id: "t-2", title: "Project Milestone", description: "Reached 100% on Quarterly Intelligence Dashboard.", time: "Yesterday, 4:00 PM", type: "milestone", entityName: "Waystar Legacy" },
+  { id: "t-3", title: "Invoice Generated", description: "Invoice #INV-2026-045 generated for Aetherius Capital.", time: "Yesterday, 1:15 PM", type: "created", entityName: "Aetherius Capital" },
+  { id: "t-4", title: "System Sync", type: "system", description: "Daily automatic data backup and sync completed.", time: "Yesterday, 2:00 AM" }
 ];
 
 export const MOCK_GOALS: GoalItem[] = [

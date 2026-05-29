@@ -9,7 +9,9 @@ import {
   Target, 
   Heart, 
   Cpu, 
-  Settings 
+  Settings,
+  TrendingUp,
+  MessageSquare
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -26,6 +28,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    section: "workspace"
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: TrendingUp,
     section: "workspace"
   },
   {
@@ -60,6 +68,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: Calendar,
     section: "workspace",
     badgeKey: "todaysMeetings"
+  },
+  {
+    name: "Communications",
+    href: "/communications",
+    icon: MessageSquare,
+    section: "workspace"
   },
   
   // Operational Intelligence Section

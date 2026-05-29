@@ -57,7 +57,15 @@ export interface DocumentItem {
   owner: string;
 }
 
-export type NotificationType = 'alert' | 'deadline' | 'activity' | 'ai';
+export type NotificationType = 'alert' | 'deadline' | 'activity' | 'ai' | 'meeting' | 'revenue' | 'client' | 'project' | 'document' | 'communication' | 'system';
+
+export type NotificationPriority = 'low' | 'standard' | 'important' | 'critical';
+
+export interface NotificationAction {
+  label: string;
+  actionKey: string;
+  primary?: boolean;
+}
 
 export interface NotificationItem {
   id: string;
@@ -66,6 +74,9 @@ export interface NotificationItem {
   time: string;
   read: boolean;
   type: NotificationType;
+  priority?: NotificationPriority;
+  actions?: NotificationAction[];
+  linkedEntityId?: string;
 }
 
 export interface GoalItem {

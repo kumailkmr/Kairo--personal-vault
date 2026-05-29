@@ -7,9 +7,7 @@ import {
   Cpu, 
   ArrowRight, 
   FileText, 
-  FolderOpen, 
-  RefreshCw,
-  ExternalLink
+  FolderOpen
 } from "lucide-react";
 import { WorkspaceShell } from "@/components/shared/layouts/WorkspaceShell";
 import { PageHeader } from "@/components/shared/layouts/PageHeader";
@@ -24,15 +22,29 @@ import { TransitionWrapper } from "@/components/shared/layouts/TransitionWrapper
 import { LandingPage } from "@/components/public/LandingPage";
 import { AuthGateway } from "@/components/auth/AuthGateway";
 import { slideUp, staggerContainer } from "@/animations";
-import { 
+import {
   MOCK_REVENUE_METRICS, 
   MOCK_CLIENTS, 
   MOCK_PROJECTS, 
-  MOCK_MEETINGS, 
-  MOCK_GOALS 
+  MOCK_MEETINGS
 } from "@/mock";
+import { ExecutiveWelcome } from "@/components/shared/dashboard/ExecutiveWelcome";
+import { QuickActions } from "@/components/shared/dashboard/QuickActions";
+import { RevenueChart } from "@/components/shared/dashboard/RevenueChart";
+import { DeadlineAlerts } from "@/components/shared/dashboard/DeadlineAlerts";
+import { UpcomingMeetingsWidget } from "@/components/shared/dashboard/UpcomingMeetingsWidget";
+import { GoalsProgress } from "@/components/shared/dashboard/GoalsProgress";
+import { RecentActivities } from "@/components/shared/dashboard/RecentActivities";
+import { NotificationsPreview } from "@/components/shared/dashboard/NotificationsPreview";
+import { ActiveProjectsWidget } from "@/components/shared/dashboard/ActiveProjectsWidget";
+import { AnalyticsOverviewWidget } from "@/components/shared/dashboard/AnalyticsOverviewWidget";
 import { useToast } from "@/hooks/useToast";
 import { aiService } from "@/services/ai";
+import { NotificationCenterLayout } from "@/components/notifications/NotificationCenterLayout";
+import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
+
+import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
+import { MeetingsDashboardLayout } from "@/components/meetings/MeetingsDashboardLayout";
 
 export default function HomePage() {
   const [appState, setAppState] = useState<"landing" | "auth" | "intro" | "skeletal" | "active">("landing");
@@ -82,214 +94,66 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
   switch (path) {
     case "/dashboard":
       return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "Dashboard"]}
-            title="Operations Control Center"
-            description="Private executive intelligence dashboard and real-time operations console."
-            action={
-              <div className="flex gap-2.5">
-                <KairoButton
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toast({
-                    title: "Sync Process Engaged",
-                    description: "Syncing Google Calendar & Meetings in the background...",
-                    type: "deadline"
-                  })}
-                >
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Sync Shell
-                </KairoButton>
-                <KairoButton
-                  variant="primary"
-                  size="sm"
-                  onClick={() => toast({
-                    title: "AI Forecaster Launched",
-                    description: "Synthesizing client database modeling...",
-                    type: "ai"
-                  })}
-                >
-                  <Cpu className="w-3.5 h-3.5" /> Dispatch Agent
-                </KairoButton>
-              </div>
-            }
-          />
+        <div className="flex flex-col gap-8 pb-12">
+          {/* Top Section: Welcome & Quick Actions */}
+          <div className="flex flex-col gap-6">
+            <ExecutiveWelcome />
+            <QuickActions />
+          </div>
 
           {/* Quick Metrics Grid */}
-          <motion.div 
-            variants={staggerContainer(0.04)}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {MOCK_REVENUE_METRICS.map((metric) => (
-              <AnalyticsCard
-                key={metric.label}
-                title={metric.label}
-                value={metric.amount}
-                changePercent={metric.changePercent}
-                period={metric.period}
-                trend={metric.trend}
-              />
-            ))}
-          </motion.div>
+          <AnalyticsOverviewWidget />
 
-          {/* Detailed Workspace Operations Grids */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-6">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Live Project Delivery Tracker Table */}
-            <div className="xl:col-span-2 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-heading font-bold text-foreground-primary">
-                  Operational Project Pipeline
-                </h3>
-                <KairoButton variant="ghost" size="sm" onClick={() => onNavigate("/projects")}>
-                  View all roadmaps <ArrowRight className="w-3 h-3" />
-                </KairoButton>
-              </div>
-
-              <KairoCard className="p-0 border border-kairo-border overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-kairo-border text-[10px] font-heading font-bold text-slate-400 uppercase tracking-widest">
-                        <th className="px-6 py-3.5">Project Name</th>
-                        <th className="px-6 py-3.5">Client Profile</th>
-                        <th className="px-6 py-3.5">Completion</th>
-                        <th className="px-6 py-3.5">Budget</th>
-                        <th className="px-6 py-3.5">Timeline Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-kairo-border/60 text-xs text-foreground-secondary">
-                      {MOCK_PROJECTS.map((proj) => {
-                        let statusColor: "primary" | "success" | "warning" | "neutral" = "neutral";
-                        let statusLabel = "Planning";
-
-                        if (proj.status === "in_progress") {
-                          statusColor = "primary";
-                          statusLabel = "In Progress";
-                        } else if (proj.status === "completed") {
-                          statusColor = "success";
-                          statusLabel = "Completed";
-                        } else if (proj.status === "review") {
-                          statusColor = "warning";
-                          statusLabel = "Under Review";
-                        }
-
-                        return (
-                          <tr key={proj.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-6 py-4.5 font-semibold text-foreground-primary">
-                              {proj.name}
-                            </td>
-                            <td className="px-6 py-4.5 font-medium">{proj.clientName}</td>
-                            <td className="px-6 py-4.5">
-                              <div className="flex items-center gap-3">
-                                <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200/50">
-                                  <div 
-                                    className="h-full bg-kairo-blue rounded-full transition-all duration-500" 
-                                    style={{ width: `${proj.progress}%` }}
-                                  />
-                                </div>
-                                <span className="font-mono font-bold leading-none">{proj.progress}%</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4.5 font-mono font-medium">
-                              {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(proj.budget)}
-                            </td>
-                            <td className="px-6 py-4.5">
-                              <KairoBadge variant={statusColor}>{statusLabel}</KairoBadge>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </KairoCard>
+            {/* Left Column: Revenue & Projects (2/3 width) */}
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <RevenueChart />
+              <ActiveProjectsWidget onNavigate={onNavigate} />
             </div>
 
-            {/* Quick Agenda & Objectives Panel */}
+            {/* Right Column: Alerts, Meetings, Goals (1/3 width) */}
             <div className="flex flex-col gap-6">
-              
-              {/* Daily Google Meet Agenda */}
-              <div className="flex flex-col gap-3">
-                <h3 className="text-sm font-heading font-bold text-foreground-primary">
-                  Today&apos;s Meetings agenda
-                </h3>
-                
-                <div className="flex flex-col gap-3.5">
-                  {MOCK_MEETINGS.map((meeting) => (
-                    <KairoCard key={meeting.id} className="p-4 flex flex-col gap-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-xs font-semibold text-foreground-primary font-heading line-clamp-1">
-                          {meeting.title}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400 shrink-0 select-none">
-                          {meeting.startTime} - {meeting.endTime}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-1 gap-3">
-                        <span className="text-[10px] text-foreground-muted truncate">
-                          {meeting.attendees.join(", ")}
-                        </span>
-                        
-                        {meeting.platform === "google_meet" ? (
-                          <KairoButton 
-                            variant="secondary" 
-                            size="sm" 
-                            className="px-2.5 py-1 text-[10px] h-6"
-                            onClick={() => toast({
-                              title: "Google Meet Launched",
-                              description: "Redirecting to video conference link...",
-                              type: "activity"
-                            })}
-                          >
-                            Join Meet <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                          </KairoButton>
-                        ) : (
-                          <KairoBadge variant="neutral">In Person</KairoBadge>
-                        )}
-                      </div>
-                    </KairoCard>
-                  ))}
-                </div>
-              </div>
-
-              {/* Private Executive Objectives */}
-              <div className="flex flex-col gap-3">
-                <h3 className="text-sm font-heading font-bold text-foreground-primary">
-                  Active Focus Objectives
-                </h3>
-                
-                <KairoCard className="p-4.5 flex flex-col gap-3.5">
-                  {MOCK_GOALS.map((goal) => (
-                    <div key={goal.id} className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground-secondary line-clamp-1">
-                          {goal.title}
-                        </span>
-                        <KairoBadge variant={goal.category === "ai" ? "primary" : "neutral"} className="scale-90 origin-right">
-                          {goal.category}
-                        </KairoBadge>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
-                          <div 
-                            className="h-full bg-kairo-blue rounded-full" 
-                            style={{ width: `${goal.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-mono font-bold leading-none text-slate-400">
-                          {goal.progress}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </KairoCard>
-              </div>
-
+              <DeadlineAlerts />
+              <UpcomingMeetingsWidget />
+              <NotificationsPreview onNavigate={onNavigate} />
+              <GoalsProgress />
+              <RecentActivities />
             </div>
+            
+          </div>
+        </div>
+      );
 
+    case "/analytics":
+      return <AnalyticsDashboard />;
+
+    case "/meetings":
+      return <MeetingsDashboardLayout />;
+
+    case "/notifications":
+      return (
+        <>
+          <PageHeader
+            breadcrumbs={["Kairo OS", "System", "Notifications"]}
+            title="Operational Signals"
+            description="Premium real-time notification center and activity timeline."
+          />
+          <NotificationCenterLayout />
+        </>
+      );
+
+    case "/settings":
+      return (
+        <>
+          <PageHeader
+            breadcrumbs={["Kairo OS", "System", "Settings"]}
+            title="Workspace Preferences"
+            description="Configure system integrations, audio signals, and operational intelligence settings."
+          />
+          <div className="grid grid-cols-1 gap-6">
+            <NotificationPreferences />
           </div>
         </>
       );
