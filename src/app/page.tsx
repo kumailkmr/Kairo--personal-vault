@@ -48,6 +48,9 @@ import { MeetingsDashboardLayout } from "@/components/meetings/MeetingsDashboard
 import { ClientsDashboardLayout } from "@/components/clients/ClientsDashboardLayout";
 import { DocumentsWorkspaceLayout } from "@/components/documents/DocumentsWorkspaceLayout";
 import { AIOpsLayout } from "@/components/ai-ops/AIOpsLayout";
+import { SettingsWorkspace } from "@/components/settings/SettingsWorkspace";
+import { GoalsWorkspace } from "@/components/goals/GoalsWorkspace";
+import { PersonalWorkspace } from "@/components/personal/PersonalWorkspace";
 
 export default function HomePage() {
   const [appState, setAppState] = useState<"landing" | "auth" | "intro" | "skeletal" | "active">("landing");
@@ -157,18 +160,13 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
       );
 
     case "/settings":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "System", "Settings"]}
-            title="Workspace Preferences"
-            description="Configure system integrations, audio signals, and operational intelligence settings."
-          />
-          <div className="grid grid-cols-1 gap-6">
-            <NotificationPreferences />
-          </div>
-        </>
-      );
+      return <SettingsWorkspace />;
+
+    case "/goals":
+      return <GoalsWorkspace />;
+
+    case "/personal":
+      return <PersonalWorkspace />;
 
     case "/clients":
       return (
