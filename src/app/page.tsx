@@ -45,6 +45,9 @@ import { NotificationPreferences } from "@/components/settings/NotificationPrefe
 
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { MeetingsDashboardLayout } from "@/components/meetings/MeetingsDashboardLayout";
+import { ClientsDashboardLayout } from "@/components/clients/ClientsDashboardLayout";
+import { DocumentsWorkspaceLayout } from "@/components/documents/DocumentsWorkspaceLayout";
+import { AIOpsLayout } from "@/components/ai-ops/AIOpsLayout";
 
 export default function HomePage() {
   const [appState, setAppState] = useState<"landing" | "auth" | "intro" | "skeletal" | "active">("landing");
@@ -131,6 +134,15 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
 
     case "/meetings":
       return <MeetingsDashboardLayout />;
+
+    case "/clients":
+      return <ClientsDashboardLayout />;
+
+    case "/documents":
+      return <DocumentsWorkspaceLayout />;
+
+    case "/ai-ops":
+      return <AIOpsLayout />;
 
     case "/notifications":
       return (
