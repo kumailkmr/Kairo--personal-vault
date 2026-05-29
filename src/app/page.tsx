@@ -1,5 +1,6 @@
 "use client";
 
+// Kairo OS — Master Unified Operating System Layer
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
