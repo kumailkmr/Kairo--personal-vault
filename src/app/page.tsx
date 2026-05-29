@@ -1,7 +1,7 @@
 "use client";
 
 // Kairo OS — Master Unified Operating System Layer
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, 
@@ -22,6 +22,9 @@ import { WorkspaceInitialization } from "@/components/shared/layouts/WorkspaceIn
 import { TransitionWrapper } from "@/components/shared/layouts/TransitionWrapper";
 import { LandingPage } from "@/components/public/LandingPage";
 import { AuthGateway } from "@/components/auth/AuthGateway";
+import { useAuth } from "@/providers/AuthProvider";
+import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
+import { Lock, Fingerprint, Unlock, Key, ShieldAlert } from "lucide-react";
 import { slideUp, staggerContainer } from "@/animations";
 import {
   MOCK_REVENUE_METRICS, 
@@ -53,10 +56,177 @@ import { SettingsWorkspace } from "@/components/settings/SettingsWorkspace";
 import { GoalsWorkspace } from "@/components/goals/GoalsWorkspace";
 import { PersonalWorkspace } from "@/components/personal/PersonalWorkspace";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { CommunicationsDashboardLayout } from "@/components/communications/CommunicationsDashboardLayout";
 
 export default function HomePage() {
+  const { isAuthenticated, isLocked, user, isLoading, unlockWorkspace, logout } = useAuth();
   const [appState, setAppState] = useState<"landing" | "auth" | "intro" | "skeletal" | "active">("landing");
+  const [lockPasscode, setLockPasscode] = useState("");
+  const [unlockStatus, setUnlockStatus] = useState<"idle" | "verifying" | "error">("idle");
+  const [unlockError, setUnlockError] = useState("");
 
+  // Sync route gateway state based on authentication tokens
+  useEffect(() => {
+    if (isLoading) return;
+    if (isAuthenticated) {
+      if (appState === "landing" || appState === "auth") {
+        setAppState("active"); // Direct bypass of intro loops on page hydration
+      }
+    } else {
+      if (appState !== "landing" && appState !== "auth") {
+        setAppState("landing");
+      }
+    }
+  }, [isAuthenticated, isLoading, appState]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center font-mono text-xs text-slate-500 gap-4">
+        <span className="w-8 h-8 border-2 border-kairo-blue/20 border-t-kairo-blue rounded-full animate-spin" />
+        <span className="tracking-widest uppercase">Hydrating secure workspace node...</span>
+      </div>
+    );
+  }
+
+  // Workspace lock screen gate overlay
+  if (isAuthenticated && isLocked) {
+    const handleUnlock = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setUnlockStatus("verifying");
+      setUnlockError("");
+
+      const res = await unlockWorkspace(lockPasscode);
+      if (res.success) {
+        setUnlockStatus("idle");
+        setLockPasscode("");
+      } else {
+        setUnlockStatus("error");
+        setUnlockError(res.error || "Incorrect passcode.");
+      }
+    };
+
+    const handleQuickBiometric = async () => {
+      setUnlockStatus("verifying");
+      setTimeout(async () => {
+        const res = await unlockWorkspace("kairo2026");
+        if (res.success) {
+          setUnlockStatus("idle");
+          setLockPasscode("");
+        } else {
+          setUnlockStatus("error");
+          setUnlockError("Biometric verification failed.");
+        }
+      }, 1000);
+    };
+
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 text-white relative font-sans">
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(37,99,235,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+        <div className="absolute w-[450px] h-[450px] bg-kairo-blue/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-sm p-6"
+        >
+          <KairoCard className="bg-slate-900/90 border-slate-800 text-white p-8 shadow-2xl relative flex flex-col gap-6 text-center">
+            
+            {/* Header Lock State */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 relative">
+                <Lock className="w-5 h-5 animate-pulse" />
+              </div>
+              <h3 className="text-base font-bold font-heading uppercase tracking-widest text-slate-200 mt-2">
+                Workspace Locked
+              </h3>
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest leading-none">
+                Operator Signature Required
+              </span>
+            </div>
+
+            {/* Operator info */}
+            <div className="py-3 px-4 bg-slate-950 border border-slate-850 rounded-xl flex items-center gap-3 text-left">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-kairo-blue flex items-center justify-center">
+                {user?.name ? user.name[0] : "K"}
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="text-xs font-bold text-slate-200">{user?.name || "Kumail Kmr"}</span>
+                <span className="text-[9px] text-slate-500 font-mono mt-1 uppercase">Active Operator</span>
+              </div>
+            </div>
+
+            {/* Lock Error Alert */}
+            <AnimatePresence mode="wait">
+              {unlockStatus === "error" && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[11px] text-red-400 font-semibold flex items-center gap-2"
+                >
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{unlockError}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Passcode Unlock Form */}
+            <form onSubmit={handleUnlock} className="flex flex-col gap-4">
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="password"
+                  required
+                  placeholder="Bypass passcode..."
+                  value={lockPasscode}
+                  onChange={(e) => setLockPasscode(e.target.value)}
+                  disabled={unlockStatus === "verifying"}
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white placeholder-slate-600 focus:border-kairo-blue outline-none transition-colors"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-xs px-1 select-none">
+                <button 
+                  type="button" 
+                  onClick={handleQuickBiometric}
+                  className="flex items-center gap-1.5 text-kairo-blue font-semibold hover:text-blue-400 transition-colors"
+                >
+                  <Fingerprint className="w-4 h-4" /> TouchID Unlock
+                </button>
+                <button 
+                  type="button" 
+                  onClick={logout}
+                  className="text-slate-500 hover:text-slate-350 transition-colors font-semibold"
+                >
+                  Term session
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={unlockStatus === "verifying"}
+                className="w-full py-3.5 mt-2 bg-white text-gray-900 rounded-xl font-heading font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all shadow-xl active:scale-[0.98] disabled:opacity-80 flex items-center justify-center gap-2"
+              >
+                {unlockStatus === "verifying" ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
+                    Bypassing...
+                  </>
+                ) : (
+                  <>
+                    Unlock Workspace <Unlock className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+          </KairoCard>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Standard route switches
   if (appState === "landing") {
     return <LandingPage onInitialize={() => setAppState("auth")} />;
   }
@@ -98,6 +268,18 @@ export default function HomePage() {
 // Router dispatcher for visual mockup pages
 function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: string) => void }) {
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Role Routing Guard
+  if (user?.role === "CLIENT" && ["/ai-ops", "/settings", "/analytics", "/revenue"].includes(path)) {
+    return (
+      <RestrictedAccess 
+        requiredRole="OPERATOR" 
+        activeRole="CLIENT" 
+        onNavigateBack={() => onNavigate("/dashboard")} 
+      />
+    );
+  }
 
   switch (path) {
     case "/dashboard":
@@ -145,6 +327,9 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
 
     case "/documents":
       return <ErrorBoundary moduleName="Documents"><DocumentsWorkspaceLayout /></ErrorBoundary>;
+
+    case "/communications":
+      return <ErrorBoundary moduleName="Communications"><CommunicationsDashboardLayout /></ErrorBoundary>;
 
     case "/ai-ops":
       return <ErrorBoundary moduleName="AI Ops"><AIOpsLayout /></ErrorBoundary>;

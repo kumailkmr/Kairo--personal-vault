@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Bell, Menu, Check, Cpu, Calendar, AlertCircle } from "lucide-react";
+import { Search, Bell, Menu, Check, Cpu, Calendar, AlertCircle, Lock, LogOut } from "lucide-react";
 import { MOCK_USER, MOCK_NOTIFICATIONS } from "@/mock";
 import { cn } from "@/utils/cn";
 import { useToast } from "@/hooks/useToast";
 import { SystemStatusIndicator } from "./SystemStatusIndicator";
+import { useAuth } from "@/providers/AuthProvider";
 
 export interface TopNavProps {
   onToggleSidebar: () => void;
@@ -19,6 +20,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [showNotifications, setShowNotifications] = useState(false);
   const { toast } = useToast();
+  const { user, lockWorkspace, logout } = useAuth();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -42,10 +44,12 @@ export const TopNav: React.FC<TopNavProps> = ({
     setShowNotifications(false);
   };
 
-  // Get letter initials for profile avatar fallback
   const getInitials = (name: string) => {
     return name.split(" ").map(n => n[0]).join("").toUpperCase();
   };
+
+  const userName = user?.name || MOCK_USER.name;
+  const userRole = user?.role || MOCK_USER.role;
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between w-full h-16 px-6 bg-white/80 backdrop-blur-md border-b border-kairo-border/80 select-none">
@@ -78,6 +82,22 @@ export const TopNav: React.FC<TopNavProps> = ({
       <div className="flex items-center gap-4.5 shrink-0">
         
         <SystemStatusIndicator status="synchronized" />
+
+        {/* Lock Workspace Trigger */}
+        <button
+          onClick={() => {
+            lockWorkspace();
+            toast({
+              title: "Perimeter Locked",
+              description: "Workspace session suspended. Access key required.",
+              type: "alert"
+            });
+          }}
+          title="Lock Workspace"
+          className="p-2 rounded-xl border border-kairo-border bg-white text-slate-500 hover:text-red-500 hover:border-red-200 hover:shadow-sm transition-all cursor-pointer relative"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
 
         {/* Notification Bell with Overlay Panel */}
         <div className="relative">
@@ -182,16 +202,23 @@ export const TopNav: React.FC<TopNavProps> = ({
         <div className="flex items-center gap-3 border-l border-kairo-border/80 pl-4">
           <div className="flex flex-col text-right leading-none hidden sm:flex">
             <span className="text-xs font-bold font-heading text-foreground-primary">
-              {MOCK_USER.name}
+              {userName}
             </span>
             <span className="text-[9px] text-foreground-muted mt-1 uppercase font-semibold tracking-wider">
-              {MOCK_USER.role}
+              {userRole}
             </span>
           </div>
 
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-kairo-blue-light border border-blue-100 text-xs font-bold font-heading text-kairo-blue select-none">
-            {getInitials(MOCK_USER.name)}
-          </div>
+          <button 
+            onClick={() => {
+              logout();
+              toast({ title: "Session Terminated", description: "Successfully logged out of workspace.", type: "activity" });
+            }}
+            title="Secure Logout"
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-kairo-blue-light hover:bg-red-50 border border-blue-100 hover:border-red-200 text-xs font-bold font-heading text-kairo-blue hover:text-red-500 select-none cursor-pointer transition-all active:scale-95"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
 
       </div>
