@@ -1,4 +1,25 @@
-# Logs
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+jspm_packages/
+.npm
+
+# Testing
+/coverage
+
+# Next.js build and cache
+/.next/
+/out/
+dist/
+build/
+
+# Debug and Logs
 logs
 *.log
 npm-debug.log*
@@ -7,19 +28,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Output directory
-dist/
-build/
-out/
-
-# IDEs and editors
+# IDEs and Editors
 .idea/
 .vscode/
 *.suo
@@ -31,10 +40,19 @@ out/
 # Operating System Files
 .DS_Store
 Thumbs.db
+*.pem
 
-# Environment variables
+# Environment variables (MUST NOT BE COMMITTED)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts

@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --background-secondary: #F8FAFC;
+  --background-tertiary: #F5F7FB;
+  
+  --foreground: #0F172A;
+  --foreground-secondary: #334155;
+  --foreground-muted: #64748B;
+  
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  
+  --border: #E2E8F0;
+  --border-hover: #CBD5E1;
+  --border-accent: #3B82F6;
+  
+  --success: #10B981;
+  --success-light: #ECFDF5;
+  --warning: #F59E0B;
+  --warning-light: #FFFBEB;
+  --danger: #EF4444;
+  --danger-light: #FEF2F2;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.02);
+  --shadow-executive: 0 1px 3px rgba(0, 0, 0, 0.02), 0 12px 32px rgba(0, 0, 0, 0.03);
+}
+
+@theme {
+  --color-background-primary: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+  
+  --color-foreground-primary: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+  
+  --color-kairo-blue: var(--primary);
+  --color-kairo-blue-hover: var(--primary-hover);
+  --color-kairo-blue-light: var(--primary-light);
+  
+  --color-kairo-border: var(--border);
+  --color-kairo-border-hover: var(--border-hover);
+  --color-kairo-border-accent: var(--border-accent);
+  
+  --color-kairo-success: var(--success);
+  --color-kairo-success-light: var(--success-light);
+  --color-kairo-warning: var(--warning);
+  --color-kairo-warning-light: var(--warning-light);
+  --color-kairo-danger: var(--danger);
+  --color-kairo-danger-light: var(--danger-light);
+  
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-executive: var(--shadow-executive);
+  
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-plus-jakarta), system-ui, sans-serif;
+}
+
+body {
+  background: var(--background-secondary);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Premium micro scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}
+
+/* Soft grid overlay utility */
+.kairo-grid-bg {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.3) 1px, transparent 1px);
+}
+
+/* Smooth active indicators styling */
+.active-nav-glow {
+  box-shadow: 0 0 20px 2px rgba(37, 99, 235, 0.08);
+}
+
+/* Premium executive shimmer keyframes */
+@keyframes kairo-shimmer-anim {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.kairo-shimmer {
+  background: linear-gradient(90deg, #F8FAFC 25%, #E2E8F0 50%, #F8FAFC 75%);
+  background-size: 200% 100%;
+  animation: kairo-shimmer-anim 1.8s infinite linear;
+}
+
