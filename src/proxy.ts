@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateKairoSession } from "@/lib/supabase/middleware";
+import { isMockMode } from "@/lib/supabase/env";
 
 // Standard list of protected executive route paths
 const PROTECTED_ROUTES = [
@@ -21,34 +23,33 @@ const PROTECTED_ROUTES = [
 const AUTH_GATEWAY = "/auth";
 
 /**
- * Next.js Edge Middleware for Workspace Session Protection.
- * Resolves cookie verification and routes unauthorized guests back to the Ingress gate.
+ * Next.js Edge Proxy for Workspace Session Protection.
+ * Coordinates real-time Supabase Auth session refresh and routes guests back to Ingress.
  */
-export function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // 1. Check if the requested route requires operator/client authentication
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-  // 2. Fetch the session JSON web token from cookies (Set upon login)
+  // 1. Execute Supabase cookie refresh handshake
+  const { response, user } = await updateKairoSession(request);
+
+  // 2. Session verification (supports mock sandbox session fallbacks)
   const sessionCookie = request.cookies.get("kairo_jwt_session");
-  const isAuthenticated = !!sessionCookie;
+  const isAuthenticated = isMockMode ? !!sessionCookie : !!user;
 
   // 3. Security Redirection Gateways
   if (isProtectedRoute && !isAuthenticated) {
-    // Save intended destination so user can be redirected back after successful auth
     const loginUrl = new URL(AUTH_GATEWAY, request.url);
     loginUrl.searchParams.set("destination", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. If logged in, block accessing the /auth screen again
+  // 4. Block authenticated users from entering /auth login portal again
   if (pathname === AUTH_GATEWAY && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // 5. Hydrate standard security headers to block clickjacking and cross-site scripting (XSS)
-  const response = NextResponse.next();
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");

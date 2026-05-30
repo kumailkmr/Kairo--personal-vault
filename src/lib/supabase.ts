@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { supabaseBrowserClient } from "./supabase/client";
+import { isMockMode as envIsMockMode } from "./supabase/env";
 import { 
   MOCK_CLIENTS, 
   MOCK_PROJECTS, 
@@ -8,29 +9,11 @@ import {
   MOCK_REVENUE_METRICS
 } from "@/mock";
 
-// Read Supabase credentials from standard environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-// Initialize the production-ready Supabase Client
-export const supabase = createClient(
-  supabaseUrl || "https://placeholder-project.supabase.co",
-  supabaseAnonKey || "placeholder-anon-key",
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10
-      }
-    }
-  }
-);
+// Export the singleton browser-side client for client components
+export const supabase = supabaseBrowserClient;
 
 // Determine if the client is operating in fallback/mock sandbox mode
-export const isMockMode = !supabaseUrl || !supabaseAnonKey;
+export const isMockMode = envIsMockMode;
 
 if (isMockMode) {
   console.warn(

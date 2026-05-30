@@ -960,3 +960,80 @@ CREATE POLICY "Clients view their communication logs" ON communication_logs FOR 
 -- L. PUBLIC LEADS (onboarding_requests)
 CREATE POLICY "Public visitor onboarding submissions" ON onboarding_requests FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Operators manage onboarding requests" ON onboarding_requests FOR ALL TO authenticated USING (is_operator(auth.uid()));
+
+-- ==========================================
+// 16. MEETINGS & CLOSINGS INTELLIGENCE EXTENSIONS
+-- ==========================================
+
+-- A. closing_pipeline
+CREATE TABLE closing_pipeline (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    stage TEXT NOT NULL CHECK (stage IN ('New Inquiry', 'Discovery Scheduled', 'Requirement Analysis', 'Proposal Sent', 'Negotiation', 'Payment Pending', 'Closed Won', 'Closed Lost')) DEFAULT 'New Inquiry',
+    projected_revenue DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- B. follow_up_tasks
+CREATE TABLE follow_up_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_completed BOOLEAN DEFAULT FALSE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- C. scheduling_events
+CREATE TABLE scheduling_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    platform TEXT NOT NULL,
+    client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- D. meeting_analytics_cache
+CREATE TABLE meeting_analytics_cache (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_key TEXT UNIQUE NOT NULL,
+    metric_value JSONB NOT NULL,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- Triggers for new tables
+CREATE TRIGGER update_closing_pipeline_updated_at BEFORE UPDATE ON closing_pipeline FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+CREATE TRIGGER update_follow_up_tasks_updated_at BEFORE UPDATE ON follow_up_tasks FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- Indexes for performance tuning
+CREATE INDEX idx_closing_pipeline_client ON closing_pipeline(client_id);
+CREATE INDEX idx_closing_pipeline_stage ON closing_pipeline(stage);
+CREATE INDEX idx_follow_up_tasks_client ON follow_up_tasks(client_id);
+CREATE INDEX idx_follow_up_tasks_due ON follow_up_tasks(due_date);
+
+-- Enable RLS
+ALTER TABLE closing_pipeline ENABLE ROW LEVEL SECURITY;
+ALTER TABLE follow_up_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scheduling_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meeting_analytics_cache ENABLE ROW LEVEL SECURITY;
+
+-- Secure RLS Policies
+CREATE POLICY "Operators manage closing pipeline" ON closing_pipeline FOR ALL TO authenticated USING (is_operator(auth.uid()));
+CREATE POLICY "Clients view their closing pipeline" ON closing_pipeline FOR SELECT TO authenticated USING (
+    client_id IN (SELECT id FROM clients WHERE email = auth.jwt()->>'email')
+);
+
+CREATE POLICY "Operators manage follow-up tasks" ON follow_up_tasks FOR ALL TO authenticated USING (is_operator(auth.uid()));
+CREATE POLICY "Clients view their follow-up tasks" ON follow_up_tasks FOR SELECT TO authenticated USING (
+    client_id IN (SELECT id FROM clients WHERE email = auth.jwt()->>'email')
+);
+
+CREATE POLICY "Operators manage scheduling events" ON scheduling_events FOR ALL TO authenticated USING (is_operator(auth.uid()));
+CREATE POLICY "Clients view their scheduling events" ON scheduling_events FOR SELECT TO authenticated USING (
+    client_id IN (SELECT id FROM clients WHERE email = auth.jwt()->>'email')
+);
+

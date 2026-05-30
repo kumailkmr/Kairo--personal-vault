@@ -355,58 +355,7 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
     case "/personal":
       return <ErrorBoundary moduleName="Life OS"><PersonalWorkspace /></ErrorBoundary>;
 
-    case "/clients":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "Clients"]}
-            title="Client Management Registry"
-            description="Centralized ledger of active executive accounts, retainer models, and consulting terms."
-            action={
-              <KairoButton variant="primary" size="sm" onClick={() => toast({ title: "Module Locked", description: "This action is reserved for Client workflow integration.", type: "activity" })}>
-                <Plus className="w-3.5 h-3.5" /> Register Client
-              </KairoButton>
-            }
-          />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {MOCK_CLIENTS.map((client) => (
-              <KairoCard key={client.id} hoverEffect className="flex flex-col justify-between gap-5 p-6 min-h-[180px]">
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-[10px] font-heading font-semibold text-slate-400 uppercase tracking-widest">
-                      {client.company}
-                    </span>
-                    <KairoBadge variant={client.status === "active" ? "success" : "warning"}>
-                      {client.status}
-                    </KairoBadge>
-                  </div>
-                  <h3 className="text-base font-bold font-heading text-foreground-primary mt-2">
-                    {client.name}
-                  </h3>
-                  <span className="text-xs text-slate-400 truncate mt-0.5">
-                    {client.email}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
-                  <div className="flex flex-col leading-none">
-                    <span className="text-xs font-mono font-bold text-foreground-primary">
-                      {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(client.revenue)}
-                    </span>
-                    <span className="text-[9px] text-slate-400 mt-1 uppercase">Monthly Retainer</span>
-                  </div>
-                  <div className="flex gap-1">
-                    {client.tags.slice(0, 1).map(tag => (
-                      <KairoBadge key={tag} className="scale-90">{tag}</KairoBadge>
-                    ))}
-                  </div>
-                </div>
-              </KairoCard>
-            ))}
-          </div>
-        </>
-      );
 
     case "/projects":
       return (
@@ -476,67 +425,7 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
         </>
       );
 
-    case "/ai-ops":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "AI Operations"]}
-            title="AI Agents Orchestration Center"
-            description="Manage background operational intelligence workflows, lead scoring analyzers, and daily summarizers."
-            action={
-              <KairoButton variant="primary" size="sm" onClick={() => toast({ title: "Model Configs", description: "Opening agent hyperparameter models...", type: "ai" })}>
-                <Cpu className="w-3.5 h-3.5" /> Initialize Model
-              </KairoButton>
-            }
-          />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { id: "wf-1", name: "Client Revenue Forecasting model", desc: "Predicts customer lifetime values and retainer drift based on multi-variate metrics.", status: "idle", successRate: 98.4, lastRun: "2 hours ago" },
-              { id: "wf-2", name: "Daily Executive Meeting Brief summarization", desc: "Synthesizes transcripts from Google Meet and drafts structured action bulletins.", status: "success", successRate: 99.1, lastRun: "34 mins ago" },
-              { id: "wf-3", name: "Sentiment-based Lead Scoring analyzer", desc: "Parses email communication sentiment vectors to identify expansion opportunities.", status: "running", successRate: 95.8, lastRun: "Just now" }
-            ].map((wf) => (
-              <KairoCard key={wf.id} className="p-6 flex flex-col justify-between gap-5">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <KairoBadge variant={wf.status === "running" ? "primary" : wf.status === "success" ? "success" : "neutral"}>
-                      {wf.status}
-                    </KairoBadge>
-                    <span className="text-[10px] font-mono text-slate-400">Accuracy: {wf.successRate}%</span>
-                  </div>
-                  
-                  <h3 className="text-sm font-bold font-heading text-foreground-primary mt-2">
-                    {wf.name}
-                  </h3>
-                  <p className="text-xs text-foreground-muted mt-1 leading-relaxed">
-                    {wf.desc}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-slate-50 pt-4 mt-2">
-                  <span className="text-[10px] text-slate-400">Last ran: {wf.lastRun}</span>
-                  <KairoButton 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 px-3 text-[10px]"
-                    onClick={async () => {
-                      toast({ title: "AI Agent Executed", description: `Dispatched ${wf.name} model.`, type: "ai" });
-                      const res = await aiService.triggerWorkflow(wf.id);
-                      toast({
-                        title: "AI Exec Success",
-                        description: `Finished in ${res.durationMs}ms. Accuracy scored high.`,
-                        type: "ai"
-                      });
-                    }}
-                  >
-                    Run Agent
-                  </KairoButton>
-                </div>
-              </KairoCard>
-            ))}
-          </div>
-        </>
-      );
 
     case "/revenue":
       return (
@@ -579,143 +468,11 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
         </>
       );
 
-    case "/documents":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "Documents"]}
-            title="Operational Documents vault"
-            description="Vault folder structures hosting contracts, onboarding parameters, and briefs."
-          />
-          <EmptyState
-            icon={FileText}
-            title="Document Vault empty"
-            description="Your personal document vault is ready. In phase 2, connect this to Supabase Storage or Google Drive folder syncs."
-            action={
-              <KairoButton variant="outline" size="sm" onClick={() => toast({ title: "Create Folder", description: "Storage system activation required.", type: "activity" })}>
-                Initialize Document Folder
-              </KairoButton>
-            }
-          />
-        </>
-      );
 
-    case "/meetings":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "Meetings"]}
-            title="Meetings Agenda & Booking"
-            description="Upcoming client calls, consulting syncs, and conference details."
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {MOCK_MEETINGS.map((meeting) => (
-              <KairoCard key={meeting.id} hoverEffect className="p-5 flex flex-col justify-between gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-                    <span>{meeting.platform.replace("_", " ")}</span>
-                    <span>{meeting.startTime} - {meeting.endTime}</span>
-                  </div>
-                  <h3 className="text-sm font-bold font-heading text-foreground-primary mt-2">
-                    {meeting.title}
-                  </h3>
-                  <span className="text-xs text-slate-400 mt-0.5 truncate">
-                    Attendees: {meeting.attendees.join(", ")}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-end border-t border-slate-50 pt-4 mt-2">
-                  {meeting.platform === "google_meet" && (
-                    <KairoButton 
-                      variant="primary" 
-                      size="sm"
-                      onClick={() => toast({
-                        title: "Meet Link Redirect",
-                        description: "Opening videoconferencing in a secure window...",
-                        type: "activity"
-                      })}
-                    >
-                      Join Google Meet
-                    </KairoButton>
-                  )}
-                </div>
-              </KairoCard>
-            ))}
-          </div>
-        </>
-      );
 
-    case "/settings":
-      return (
-        <>
-          <PageHeader
-            breadcrumbs={["Kairo OS", "Settings"]}
-            title="Workspace Settings"
-            description="Manage configurations, developer parameters, and integrations pipelines."
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <KairoCard className="flex flex-col gap-4">
-              <h3 className="text-sm font-heading font-bold text-foreground-primary">
-                API Integrations
-              </h3>
-              <p className="text-xs text-foreground-muted leading-relaxed">
-                Connect external networks securely. Set your parameters for calendar synchronization, automated communications, and intelligence agent modeling.
-              </p>
-              
-              <div className="flex flex-col gap-3 mt-4">
-                {[
-                  { name: "Supabase DB & Storage Connection", key: "SUPABASE_CONNECTED", connected: false },
-                  { name: "Google Calendar & Meet APIs", key: "GOOGLE_OAUTH_SYNCED", connected: false },
-                  { name: "WhatsApp Business API", key: "WHATSAPP_INTEGRATION", connected: false }
-                ].map((api) => (
-                  <div key={api.key} className="flex items-center justify-between p-3.5 bg-slate-50 border border-kairo-border rounded-xl">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-foreground-primary">{api.name}</span>
-                      <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">{api.key}</span>
-                    </div>
-                    <KairoBadge variant="neutral">Not Connected</KairoBadge>
-                  </div>
-                ))}
-              </div>
-            </KairoCard>
 
-            <KairoCard className="flex flex-col gap-4 justify-between">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-sm font-heading font-bold text-foreground-primary">
-                  System Diagnostics & Information
-                </h3>
-                <p className="text-xs text-foreground-muted leading-relaxed">
-                  System variables, security hashes, and build indicators for the active Kairo OS shell.
-                </p>
 
-                <div className="flex flex-col gap-2.5 mt-3 text-xs">
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-400">Environment</span>
-                    <span className="font-semibold text-foreground-secondary">Production-Grade Shell</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-400">Strict TypeScript</span>
-                    <span className="font-mono text-kairo-success font-semibold">Enabled</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-400">Tailwind Engine</span>
-                    <span className="font-mono text-foreground-secondary">v4.3.0 stable</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-slate-400">React Core Layer</span>
-                    <span className="font-mono text-foreground-secondary">v19.0.0 (Server Components)</span>
-                  </div>
-                </div>
-              </div>
-
-              <KairoButton variant="primary" size="sm" onClick={() => toast({ title: "System Intact", description: "Operational diagnostic verified successful.", type: "ai" })}>
-                Run Diagnostics
-              </KairoButton>
-            </KairoCard>
-          </div>
-        </>
-      );
 
     default:
       return (
