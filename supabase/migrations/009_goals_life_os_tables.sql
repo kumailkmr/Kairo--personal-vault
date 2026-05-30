@@ -1,6 +1,13 @@
 -- Kairo OS Migration — 009 Goals & Life OS Tables
 -- Setup strategic objective setting, roadmap milestone items, execution tasks, and productivity/health logs.
 
+DROP TABLE IF EXISTS life_os_entries CASCADE;
+DROP TABLE IF EXISTS productivity_logs CASCADE;
+DROP TABLE IF EXISTS execution_tasks CASCADE;
+DROP TABLE IF EXISTS roadmap_items CASCADE;
+DROP TABLE IF EXISTS goal_progress_logs CASCADE;
+DROP TABLE IF EXISTS goals CASCADE;
+
 CREATE TABLE goals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,

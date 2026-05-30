@@ -1,6 +1,12 @@
 -- Kairo OS Migration — 006 Financial Tables
 -- Setup Financial core ledger: invoices, line items, transaction logs, and billing caches.
 
+DROP TABLE IF EXISTS revenue_analytics_cache CASCADE;
+DROP TABLE IF EXISTS payment_milestones CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS invoice_items CASCADE;
+DROP TABLE IF EXISTS invoices CASCADE;
+
 CREATE TABLE invoices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,

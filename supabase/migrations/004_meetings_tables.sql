@@ -1,6 +1,15 @@
 -- Kairo OS Migration — 004 Meetings Tables
 -- Setup Meetings coordination, reminders, notes, closing pipelines, and follow-up schedules.
 
+DROP TABLE IF EXISTS meeting_analytics_cache CASCADE;
+DROP TABLE IF EXISTS scheduling_events CASCADE;
+DROP TABLE IF EXISTS follow_up_tasks CASCADE;
+DROP TABLE IF EXISTS closing_pipeline CASCADE;
+DROP TABLE IF EXISTS meeting_activity_logs CASCADE;
+DROP TABLE IF EXISTS meeting_reminders CASCADE;
+DROP TABLE IF EXISTS meeting_notes CASCADE;
+DROP TABLE IF EXISTS meetings CASCADE;
+
 CREATE TABLE meetings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID REFERENCES clients(id) ON DELETE CASCADE,

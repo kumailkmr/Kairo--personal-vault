@@ -1,6 +1,12 @@
 -- Kairo OS Migration — 002 CRM Tables
 -- Setup CRM tables for account records, contacts, notes, tags, and audit logs.
 
+DROP TABLE IF EXISTS client_activity_logs CASCADE;
+DROP TABLE IF EXISTS client_tags CASCADE;
+DROP TABLE IF EXISTS client_notes CASCADE;
+DROP TABLE IF EXISTS client_contacts CASCADE;
+DROP TABLE IF EXISTS clients CASCADE;
+
 CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,

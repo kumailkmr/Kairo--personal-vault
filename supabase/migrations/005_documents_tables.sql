@@ -1,6 +1,15 @@
 -- Kairo OS Migration — 005 Documents Tables
 -- Setup Documents, versions, templates, and corporate legal contracts/agreements.
 
+DROP TABLE IF EXISTS sow_documents CASCADE;
+DROP TABLE IF EXISTS ndas CASCADE;
+DROP TABLE IF EXISTS contracts CASCADE;
+DROP TABLE IF EXISTS proposals CASCADE;
+DROP TABLE IF EXISTS agreements CASCADE;
+DROP TABLE IF EXISTS document_templates CASCADE;
+DROP TABLE IF EXISTS document_versions CASCADE;
+DROP TABLE IF EXISTS documents CASCADE;
+
 CREATE TABLE documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID REFERENCES clients(id) ON DELETE CASCADE,

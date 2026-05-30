@@ -1,6 +1,11 @@
 -- Kairo OS Migration — 007 Communications Tables
 -- Setup message logs, twilio/resend integration trackers, and inbound public client onboarding requests.
 
+DROP TABLE IF EXISTS onboarding_requests CASCADE;
+DROP TABLE IF EXISTS email_logs CASCADE;
+DROP TABLE IF EXISTS whatsapp_logs CASCADE;
+DROP TABLE IF EXISTS communication_logs CASCADE;
+
 CREATE TABLE communication_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID REFERENCES clients(id) ON DELETE CASCADE,

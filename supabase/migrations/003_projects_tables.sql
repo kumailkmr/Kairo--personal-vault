@@ -1,6 +1,12 @@
 -- Kairo OS Migration — 003 Projects Tables
 -- Setup Projects, tasks, milestones, storage links, and status logs.
 
+DROP TABLE IF EXISTS project_status_logs CASCADE;
+DROP TABLE IF EXISTS project_assets CASCADE;
+DROP TABLE IF EXISTS project_tasks CASCADE;
+DROP TABLE IF EXISTS project_milestones CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+
 CREATE TABLE projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,

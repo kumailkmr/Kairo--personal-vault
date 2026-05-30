@@ -1,6 +1,10 @@
 -- Kairo OS Migration — 010 Notifications Tables
 -- Setup real-time signaling, priority alerts, user preferences, and outbox delivery logging.
 
+DROP TABLE IF EXISTS notification_logs CASCADE;
+DROP TABLE IF EXISTS notification_preferences CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,

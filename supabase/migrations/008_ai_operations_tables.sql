@@ -1,6 +1,13 @@
 -- Kairo OS Migration — 008 AI Operations Tables
 -- Setup background AI agents orchestration, task logging, and cron/inbound automation workflow trackers.
 
+DROP TABLE IF EXISTS automation_events CASCADE;
+DROP TABLE IF EXISTS workflow_runs CASCADE;
+DROP TABLE IF EXISTS ai_workflows CASCADE;
+DROP TABLE IF EXISTS ai_task_logs CASCADE;
+DROP TABLE IF EXISTS ai_tasks CASCADE;
+DROP TABLE IF EXISTS ai_agents CASCADE;
+
 CREATE TABLE ai_agents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,

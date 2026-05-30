@@ -1,6 +1,10 @@
 -- Kairo OS Migration — 011 Analytics Tables
 -- Setup telemetry analytics event logging, aggregation KPI caches, and background business intelligence insights.
 
+DROP TABLE IF EXISTS operational_insights CASCADE;
+DROP TABLE IF EXISTS dashboard_metrics_cache CASCADE;
+DROP TABLE IF EXISTS analytics_events CASCADE;
+
 CREATE TABLE analytics_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
