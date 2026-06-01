@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { buttonPress } from "@/animations";
+import { buttonPress, buttonHover } from "@/animations";
 import { cn } from "@/utils/cn";
 
 export interface KairoButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -35,6 +35,7 @@ export const KairoButton: React.FC<KairoButtonProps> = ({
 
   return (
     <motion.button
+      whileHover={buttonHover}
       whileTap={buttonPress}
       className={cn(baseStyle, variants[variant], sizes[size], className)}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

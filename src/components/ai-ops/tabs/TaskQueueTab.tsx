@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { MOCK_AI_TASKS, AITask } from "@/mock/ai-ops";
 import { Play, CheckCircle, AlertTriangle, RefreshCw, Layers, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const TaskQueueTab: React.FC = () => {
-  const [tasks, setTasks] = useState<AITask[]>(MOCK_AI_TASKS);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   const retryTask = (id: string) => {
     setTasks(prev => 

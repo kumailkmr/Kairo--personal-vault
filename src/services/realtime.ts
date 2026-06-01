@@ -1,4 +1,5 @@
-import { supabase, isMockMode } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 type RealtimeCallback = (payload: {
   event: "INSERT" | "UPDATE" | "DELETE";
@@ -24,30 +25,6 @@ export const realtimeEngine = {
    */
   subscribeToTable(tableName: string, callback: RealtimeCallback): { unsubscribe: () => void } {
     const channelName = `realtime-sync:${tableName}`;
-
-    if (isMockMode) {
-      console.log(`[Realtime Mock] Subscribed to changes on: ${tableName}`);
-      
-      // Simulate real-time database mutations periodically in sandbox/mock mode
-      const intervalId = setInterval(() => {
-        const triggers = ["INSERT", "UPDATE"];
-        const randomTrigger = triggers[Math.floor(Math.random() * triggers.length)] as "INSERT" | "UPDATE";
-        
-        callback({
-          event: randomTrigger,
-          table: tableName,
-          new: { id: `mock-${tableName}-${Math.random().toString(36).substr(2, 5)}`, updated_at: new Date().toISOString() },
-          old: {}
-        });
-      }, 45000); // Triggers mock updates every 45s in local testing mode
-
-      return {
-        unsubscribe: () => {
-          clearInterval(intervalId);
-          console.log(`[Realtime Mock] Unsubscribed from changes on: ${tableName}`);
-        }
-      };
-    }
 
     // 1. If channel already exists, append the callback to the listeners set
     if (activeSubscriptions[channelName]) {
@@ -77,7 +54,7 @@ export const realtimeEngine = {
           table: tableName
         },
         (payload) => {
-          console.log(`[Realtime Sync] Mutation intercepted on: ${tableName}`, payload.eventType);
+          logger.info("REALTIME", `Mutation intercepted on: ${tableName}`, { eventType: payload.eventType });
           callbacksSet.forEach(cb => {
             cb({
               event: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
@@ -90,18 +67,18 @@ export const realtimeEngine = {
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          console.log(`[Realtime Sync] Connected to Supabase socket channel: ${channelName}`);
+          logger.info("REALTIME", `Connected to Supabase socket channel: ${channelName}`);
         } else if (status === "CHANNEL_ERROR") {
-          console.error(`[Realtime Sync] Connection error on channel: ${channelName}`);
+          logger.error("REALTIME", `Connection error on channel: ${channelName}`);
         } else if (status === "TIMED_OUT") {
-          console.warn(`[Realtime Sync] Subscription connection timeout: ${channelName}`);
+          logger.warn("REALTIME", `Subscription connection timeout: ${channelName}`);
         }
       });
 
     activeSubscriptions[channelName] = {
       unsubscribe: () => {
         supabase.removeChannel(channel);
-        console.log(`[Realtime Sync] Dismantled socket channel: ${channelName}`);
+        logger.info("REALTIME", `Dismantled socket channel: ${channelName}`);
       },
       callbacks: callbacksSet
     };
@@ -125,6 +102,6 @@ export const realtimeEngine = {
       activeSubscriptions[channelName].unsubscribe();
       delete activeSubscriptions[channelName];
     });
-    console.log("[Realtime Sync] Teardown: Disconnected all active realtime channels.");
+    logger.info("REALTIME", "Teardown: Disconnected all active realtime channels.");
   }
 };

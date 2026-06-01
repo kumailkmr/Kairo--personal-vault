@@ -2,9 +2,8 @@
 
 import React from "react";
 import { Mail, Phone, Globe, Tag } from "lucide-react";
-import { CRMClient } from "@/mock/clients";
 
-export const ClientOverviewCard: React.FC<{ client: CRMClient }> = ({ client }) => {
+export const ClientOverviewCard: React.FC<{ client: any }> = ({ client }) => {
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
       <div className="flex flex-col gap-6">
@@ -44,7 +43,7 @@ export const ClientOverviewCard: React.FC<{ client: CRMClient }> = ({ client }) 
           <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">
             <Tag className="w-3 h-3" /> Tags:
           </div>
-          {client.tags.map(tag => (
+          {client.tags.map((tag: any) => (
             <span key={tag} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-slate-200">
               {tag}
             </span>

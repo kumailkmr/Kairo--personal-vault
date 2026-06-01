@@ -80,3 +80,12 @@ export const buttonPress = {
     damping: 15
   }
 };
+
+export const buttonHover = {
+  scale: 1.02,
+  transition: {
+    type: "spring" as const,
+    stiffness: 400,
+    damping: 15
+  }
+};

@@ -6,7 +6,7 @@ import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { meetingsService } from "@/services/meetings.service";
 import { Handshake, MoreHorizontal, ArrowRight, Loader2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { PipelineStage } from "@/mock/meetings";
+type PipelineStage = string;
 
 const PIPELINE_STAGES: PipelineStage[] = [
   "New Inquiry",

@@ -26,13 +26,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { Lock, Fingerprint, Unlock, Key, ShieldAlert } from "lucide-react";
 import { slideUp, staggerContainer } from "@/animations";
-import {
-  MOCK_REVENUE_METRICS, 
-  MOCK_CLIENTS, 
-  MOCK_PROJECTS, 
-  MOCK_MEETINGS
-} from "@/mock";
 import { ExecutiveWelcome } from "@/components/shared/dashboard/ExecutiveWelcome";
+import { ExecutiveDailyBrief } from "@/components/shared/dashboard/ExecutiveDailyBrief";
 import { QuickActions } from "@/components/shared/dashboard/QuickActions";
 import { RevenueChart } from "@/components/shared/dashboard/RevenueChart";
 import { DeadlineAlerts } from "@/components/shared/dashboard/DeadlineAlerts";
@@ -57,6 +52,8 @@ import { GoalsWorkspace } from "@/components/goals/GoalsWorkspace";
 import { PersonalWorkspace } from "@/components/personal/PersonalWorkspace";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { CommunicationsDashboardLayout } from "@/components/communications/CommunicationsDashboardLayout";
+import { SecurityVerificationWorkspace } from "@/components/admin/SecurityVerificationWorkspace";
+import { OperationalHealthDashboard } from "@/components/admin/OperationalHealthDashboard";
 
 export default function HomePage() {
   const { isAuthenticated, isLocked, user, isLoading, unlockWorkspace, logout } = useAuth();
@@ -271,7 +268,7 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
   const { user } = useAuth();
 
   // Role Routing Guard
-  if (user?.role === "CLIENT" && ["/ai-ops", "/settings", "/analytics", "/revenue"].includes(path)) {
+  if (user?.role === "CLIENT" && ["/ai-ops", "/settings", "/analytics", "/revenue", "/admin/security"].includes(path)) {
     return (
       <RestrictedAccess 
         requiredRole="OPERATOR" 
@@ -284,36 +281,45 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
   switch (path) {
     case "/dashboard":
       return (
-        <div className="flex flex-col gap-8 pb-12">
+        <motion.div 
+          variants={staggerContainer()}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col gap-8 pb-12"
+        >
+          <ExecutiveDailyBrief />
+          
           {/* Top Section: Welcome & Quick Actions */}
-          <div className="flex flex-col gap-6">
+          <motion.div variants={slideUp} className="flex flex-col gap-6">
             <ExecutiveWelcome />
             <QuickActions />
-          </div>
+          </motion.div>
 
           {/* Quick Metrics Grid */}
-          <AnalyticsOverviewWidget />
+          <motion.div variants={slideUp}>
+            <AnalyticsOverviewWidget />
+          </motion.div>
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Left Column: Revenue & Projects (2/3 width) */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
+            <motion.div variants={slideUp} className="lg:col-span-2 flex flex-col gap-6">
               <RevenueChart />
               <ActiveProjectsWidget onNavigate={onNavigate} />
-            </div>
+            </motion.div>
 
-            {/* Right Column: Alerts, Meetings, Goals (1/3 width) */}
-            <div className="flex flex-col gap-6">
+            {/* Right Column: Deadlines, Goals & Activity (1/3 width) */}
+            <motion.div variants={slideUp} className="flex flex-col gap-6">
               <DeadlineAlerts />
               <UpcomingMeetingsWidget />
-              <NotificationsPreview onNavigate={onNavigate} />
               <GoalsProgress />
+              <NotificationsPreview onNavigate={onNavigate} />
               <RecentActivities />
-            </div>
+            </motion.div>
             
           </div>
-        </div>
+        </motion.div>
       );
 
     case "/analytics":
@@ -349,6 +355,12 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
     case "/settings":
       return <ErrorBoundary moduleName="Settings"><SettingsWorkspace /></ErrorBoundary>;
 
+    case "/admin/security":
+      return <ErrorBoundary moduleName="Security Admin"><SecurityVerificationWorkspace /></ErrorBoundary>;
+
+    case "/admin/operations":
+      return <ErrorBoundary moduleName="Operations Dashboard"><OperationalHealthDashboard /></ErrorBoundary>;
+
     case "/goals":
       return <ErrorBoundary moduleName="Goals Matrix"><GoalsWorkspace /></ErrorBoundary>;
 
@@ -372,7 +384,7 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {MOCK_PROJECTS.map((proj) => {
+            {([] as any[]).map((proj: any) => {
               let badgeColor: "primary" | "success" | "warning" | "neutral" = "neutral";
               
               if (proj.status === "in_progress") badgeColor = "primary";
@@ -445,7 +457,7 @@ function PageContent({ path, onNavigate }: { path: string; onNavigate: (href: st
             variants={staggerContainer(0.04)}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
-            {MOCK_REVENUE_METRICS.map((metric) => (
+            {([] as any[]).map((metric: any) => (
               <AnalyticsCard
                 key={metric.label}
                 title={metric.label}

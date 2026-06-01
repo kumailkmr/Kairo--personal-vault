@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// ═══════════════════════════════════════════════════════════════
+// KAIRO OS — ENVIRONMENT CONFIGURATION & VALIDATION
+// ═══════════════════════════════════════════════════════════════
+
 const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().or(z.string().min(0)),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(0),
@@ -32,10 +36,28 @@ export const isSupabaseConfigured =
   !!envValues.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
   !envValues.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes("placeholder");
 
-export const isMockMode = !isSupabaseConfigured;
-
 export const supabaseEnv = {
-  url: isMockMode ? "https://placeholder-project-id.supabase.co" : envValues.NEXT_PUBLIC_SUPABASE_URL,
-  anonKey: isMockMode ? "placeholder-anon-key" : envValues.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  serviceRoleKey: isMockMode ? "placeholder-service-role" : envValues.SUPABASE_SERVICE_ROLE_KEY,
+  url: envValues.NEXT_PUBLIC_SUPABASE_URL,
+  anonKey: envValues.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  serviceRoleKey: envValues.SUPABASE_SERVICE_ROLE_KEY,
 };
+
+// ─── Application Environment ──────────────────────────────────
+export const appEnv = {
+  url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  environment: (process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV || "development") as
+    | "development"
+    | "preview"
+    | "production",
+  isProduction: process.env.NODE_ENV === "production",
+  isDevelopment: process.env.NODE_ENV !== "production",
+};
+
+// ─── Production Startup Validation ────────────────────────────
+
+if (appEnv.isProduction && !envValues.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn(
+    "🚨 PRODUCTION WARNING: SUPABASE_SERVICE_ROLE_KEY is not configured. " +
+    "Admin operations and database seeding will not function."
+  );
+}

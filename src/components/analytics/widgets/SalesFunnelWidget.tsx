@@ -3,7 +3,6 @@
 import React from "react";
 import { Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
-import { MOCK_FUNNEL_METRICS } from "@/mock/analytics";
 
 const COLORS = ['#94a3b8', '#60a5fa', '#3b82f6', '#2563eb', '#1e40af'];
 
@@ -21,7 +20,7 @@ export const SalesFunnelWidget: React.FC = () => {
 
       <div className="flex-1 min-h-0 w-full mt-2">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={MOCK_FUNNEL_METRICS} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} layout="vertical">
+          <BarChart data={[]} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
             <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }} />
             <YAxis dataKey="stage" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }} width={80} />
@@ -37,7 +36,7 @@ export const SalesFunnelWidget: React.FC = () => {
               }}
             />
             <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={32}>
-              {MOCK_FUNNEL_METRICS.map((entry, index) => (
+              {([] as any[]).map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Bar>

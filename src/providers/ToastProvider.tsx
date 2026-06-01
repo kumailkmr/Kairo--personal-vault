@@ -75,7 +75,7 @@ const ToastItem: React.FC<{ t: Toast, dismiss: (id: string) => void }> = ({ t, d
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       transition={{ type: "spring", stiffness: 260, damping: 25 }}
-      className={`pointer-events-auto flex flex-col p-4 rounded-xl border ${borderClass} bg-white shadow-xl overflow-hidden relative group`}
+      className={`pointer-events-auto flex flex-col p-4 rounded-2xl border ${borderClass} bg-white/80 backdrop-blur-xl shadow-2xl overflow-hidden relative group`}
     >
       <div className="flex items-start gap-3">
         <div className={`flex items-center justify-center p-2 rounded-lg shrink-0 ${iconClass}`}>
@@ -150,7 +150,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => [...prev, { id, title, description, type, priority, actions, duration }]);
 
     // Play operational sound
-    soundManager.play('operational', type === 'alert' ? 'ping_alert' : 'ping_subtle');
+    let soundProfile: any = 'ping_subtle';
+    if (priority === 'critical') soundProfile = 'error_buzz';
+    else if (type === 'alert') soundProfile = 'warning_pulse';
+    else if (type === 'activity') soundProfile = 'success_chime';
+    
+    soundManager.play('operational', soundProfile);
 
     if (duration > 0) {
       setTimeout(() => {

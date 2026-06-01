@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MOCK_CLIENT_PROJECTS } from "@/mock/clients";
+
 import { motion } from "framer-motion";
 import { LayoutGrid, Clock, CheckCircle } from "lucide-react";
 
@@ -12,7 +12,7 @@ export const ClientProjectsTab: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
-      {MOCK_CLIENT_PROJECTS.map((project, idx) => (
+      {([] as any[]).map((project: any, idx: any) => (
         <motion.div 
           key={project.id}
           initial={{ opacity: 0, scale: 0.95 }}

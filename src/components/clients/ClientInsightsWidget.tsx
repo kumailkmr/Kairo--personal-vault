@@ -3,10 +3,9 @@
 import React from "react";
 import { AlertCircle, Clock, Zap, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { CRMClient } from "@/mock/clients";
 
 interface ClientInsightsProps {
-  clients: CRMClient[];
+  clients: any[];
 }
 
 export const ClientInsightsWidget: React.FC<ClientInsightsProps> = ({ clients }) => {

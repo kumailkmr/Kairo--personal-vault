@@ -3,7 +3,6 @@
 import React from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { DollarSign, ArrowUpRight } from "lucide-react";
-import { MOCK_REVENUE_HISTORY } from "@/mock/analytics";
 
 export const RevenueIntelligenceWidget: React.FC = () => {
   return (
@@ -28,7 +27,7 @@ export const RevenueIntelligenceWidget: React.FC = () => {
       
       <div className="flex-1 min-h-0 w-full mt-2">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={MOCK_REVENUE_HISTORY} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+          <AreaChart data={[]} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>

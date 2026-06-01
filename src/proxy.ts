@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { updateKairoSession } from "@/lib/supabase/middleware";
-import { isMockMode } from "@/lib/supabase/env";
+// ═══════════════════════════════════════════════════════════════
+// ROUTE PROTECTION CONFIGURATION
+// ═══════════════════════════════════════════════════════════════
 
-// Standard list of protected executive route paths
 const PROTECTED_ROUTES = [
   "/dashboard",
   "/analytics",
@@ -17,46 +18,175 @@ const PROTECTED_ROUTES = [
   "/notifications",
   "/projects",
   "/revenue",
-  "/communications"
+  "/communications",
+  "/admin",
 ];
 
 const AUTH_GATEWAY = "/auth";
 
+// ═══════════════════════════════════════════════════════════════
+// EDGE-BASED IN-MEMORY RATE LIMITER
+// ═══════════════════════════════════════════════════════════════
+// Suitable for Vercel Edge Runtime. Each cold start resets the map.
+// For persistent rate limiting at scale, upgrade to Upstash Redis.
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+// Rate limit configs: [max requests, window in seconds]
+const RATE_LIMITS: Record<string, [number, number]> = {
+  "/auth": [5, 60],           // 5 auth attempts per minute
+  "/onboard": [3, 60],        // 3 onboarding submissions per minute
+  "/api": [30, 60],           // 30 API calls per minute
+};
+
+function getClientIdentifier(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "anonymous"
+  );
+}
+
+function checkRateLimit(
+  identifier: string,
+  path: string
+): { allowed: boolean; remaining: number; resetIn: number } {
+  // Find matching rate limit config
+  const configKey = Object.keys(RATE_LIMITS).find((key) =>
+    path.startsWith(key)
+  );
+  if (!configKey) return { allowed: true, remaining: -1, resetIn: 0 };
+
+  const [maxRequests, windowSeconds] = RATE_LIMITS[configKey];
+  const key = `${identifier}:${configKey}`;
+  const now = Date.now();
+
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || now >= entry.resetAt) {
+    // New window
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowSeconds * 1000 });
+    return { allowed: true, remaining: maxRequests - 1, resetIn: windowSeconds };
+  }
+
+  if (entry.count >= maxRequests) {
+    // Rate limit exceeded
+    const resetIn = Math.ceil((entry.resetAt - now) / 1000);
+    return { allowed: false, remaining: 0, resetIn };
+  }
+
+  // Increment counter
+  entry.count++;
+  return {
+    allowed: true,
+    remaining: maxRequests - entry.count,
+    resetIn: Math.ceil((entry.resetAt - now) / 1000),
+  };
+}
+
+// Periodic cleanup of expired entries (every 100 requests)
+let requestCounter = 0;
+function cleanupExpiredEntries() {
+  requestCounter++;
+  if (requestCounter % 100 !== 0) return;
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now >= entry.resetAt) {
+      rateLimitStore.delete(key);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROXY HANDLER
+// ═══════════════════════════════════════════════════════════════
+
 /**
- * Next.js Edge Proxy for Workspace Session Protection.
- * Coordinates real-time Supabase Auth session refresh and routes guests back to Ingress.
+ * Next.js Edge Proxy for Workspace Session Protection, Rate Limiting,
+ * and Security Header Enforcement.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-  // 1. Execute Supabase cookie refresh handshake
+  // ─── Rate Limiting ───────────────────────────────────────────
+  cleanupExpiredEntries();
+  const clientId = getClientIdentifier(request);
+  const rateCheck = checkRateLimit(clientId, pathname);
+
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: "Too Many Requests",
+        message: "Rate limit exceeded. Please wait before retrying.",
+        retryAfter: rateCheck.resetIn,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateCheck.resetIn),
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(rateCheck.resetIn),
+        },
+      }
+    );
+  }
+
+  // ─── Session Verification ──────────────────────────────────
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+
   const { response, user } = await updateKairoSession(request);
 
-  // 2. Session verification (supports mock sandbox session fallbacks)
-  const sessionCookie = request.cookies.get("kairo_jwt_session");
-  const isAuthenticated = isMockMode ? !!sessionCookie : !!user;
+  const isAuthenticated = !!user;
 
-  // 3. Security Redirection Gateways
+  // Redirect unauthenticated users away from protected routes
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL(AUTH_GATEWAY, request.url);
     loginUrl.searchParams.set("destination", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. Block authenticated users from entering /auth login portal again
+  // Redirect authenticated users away from login portal
   if (pathname === AUTH_GATEWAY && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // 5. Hydrate standard security headers to block clickjacking and cross-site scripting (XSS)
+  // ─── Security Headers ─────────────────────────────────────
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:;"
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
   );
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+  );
+  response.headers.set(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co ws: wss:",
+      "font-src 'self'",
+      "frame-ancestors 'none'",
+    ].join("; ")
+  );
+
+  // Rate limit headers on successful responses
+  if (rateCheck.remaining >= 0) {
+    response.headers.set("X-RateLimit-Remaining", String(rateCheck.remaining));
+    response.headers.set("X-RateLimit-Reset", String(rateCheck.resetIn));
+  }
 
   return response;
 }
@@ -65,12 +195,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder resources (images, grids)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|images|grid.svg).*)"
-  ]
+    "/((?!_next/static|_next/image|favicon.ico|images|grid.svg).*)",
+  ],
 };

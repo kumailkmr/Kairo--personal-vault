@@ -1,15 +1,14 @@
 "use client";
 
 import React from "react";
-import { MOCK_AI_EMPLOYEES, MOCK_AI_WORKFLOWS, MOCK_AI_TASKS, MOCK_AI_INSIGHTS } from "@/mock/ai-ops";
 import { AIOpsTab } from "../AIOpsLayout";
 import { Cpu, Zap, Play, AlertCircle, CheckCircle2, ChevronRight, Activity, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 export const DashboardTab: React.FC<{ onNavigate: (tab: AIOpsTab) => void }> = ({ onNavigate }) => {
-  const activeEmployees = MOCK_AI_EMPLOYEES.filter(emp => emp.status === "Active").length;
-  const activeWorkflows = MOCK_AI_WORKFLOWS.filter(wf => wf.status === "Active").length;
-  const runningTasks = MOCK_AI_TASKS.filter(task => task.status === "Running" || task.status === "Queued").length;
+  const activeEmployees = ([] as any[]).filter((emp: any) => emp.status === "Active").length;
+  const activeWorkflows = ([] as any[]).filter((wf: any) => wf.status === "Active").length;
+  const runningTasks = ([] as any[]).filter((task: any) => task.status === "Running" || task.status === "Queued").length;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -24,7 +23,7 @@ export const DashboardTab: React.FC<{ onNavigate: (tab: AIOpsTab) => void }> = (
                      <Cpu className="w-5 h-5" />
                   </div>
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active AI Employees</h4>
-                  <div className="text-3xl font-bold font-sans tracking-tight text-gray-900 mt-2">{activeEmployees} / {MOCK_AI_EMPLOYEES.length}</div>
+                  <div className="text-3xl font-bold font-sans tracking-tight text-gray-900 mt-2">{activeEmployees} / {0}</div>
                </div>
                <button 
                  onClick={() => onNavigate("employees")}
@@ -82,7 +81,7 @@ export const DashboardTab: React.FC<{ onNavigate: (tab: AIOpsTab) => void }> = (
             </div>
             
             <div className="divide-y divide-slate-100">
-               {MOCK_AI_TASKS.slice(0, 3).map((task) => (
+               {([] as any[]).slice(0, 3).map((task: any) => (
                   <div key={task.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-slate-50 transition-colors">
                      <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-xl ${
@@ -119,7 +118,7 @@ export const DashboardTab: React.FC<{ onNavigate: (tab: AIOpsTab) => void }> = (
                </h3>
                
                <div className="flex flex-col gap-4 flex-1">
-                  {MOCK_AI_INSIGHTS.map((insight) => (
+                  {([] as any[]).map((insight: any) => (
                      <div key={insight.id} className="p-4 bg-slate-800/40 border border-slate-800 rounded-2xl flex items-start gap-3 backdrop-blur-sm">
                         {insight.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />}
                         {insight.type === "warning" && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />}

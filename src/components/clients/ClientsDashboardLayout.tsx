@@ -7,7 +7,6 @@ import { ClientsTable } from "./ClientsTable";
 import { ClientInsightsWidget } from "./ClientInsightsWidget";
 import { ClientDetailWorkspace } from "./details/ClientDetailWorkspace";
 import { ClientFormModal } from "./crud/ClientFormModal";
-import { CRMClient } from "@/mock/clients";
 import { useQuery } from "@tanstack/react-query";
 import { dbService } from "@/services/db.service";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -18,7 +17,7 @@ export const ClientsDashboardLayout: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // 1. Fetch CRM Clients using TanStack Query
-  const { data: clients = [], isLoading, error } = useQuery<CRMClient[]>({
+  const { data: clients = [], isLoading, error } = useQuery<any[]>({
     queryKey: ["clients"],
     queryFn: () => dbService.getClients(),
     refetchInterval: 120000 // 2 minutes query polling fallback
@@ -37,7 +36,7 @@ export const ClientsDashboardLayout: React.FC = () => {
     return (
       c.name.toLowerCase().includes(term) ||
       c.company.toLowerCase().includes(term) ||
-      c.tags.some(t => t.toLowerCase().includes(term))
+      c.tags.some((t: any) => t.toLowerCase().includes(term))
     );
   });
 

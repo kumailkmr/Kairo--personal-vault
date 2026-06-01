@@ -1,5 +1,4 @@
 import { createKairoBrowserClient } from "./client";
-import { isMockMode } from "./env";
 
 /**
  * Enterprise Realtime Sync Abstractions.
@@ -15,14 +14,7 @@ export const kairoRealtime = {
     event: "INSERT" | "UPDATE" | "DELETE" | "*",
     callback: (payload: any) => void
   ) {
-    if (isMockMode) {
-      console.warn(`⚠️ Sandbox Mock Broadcast: Realtime listener wired on "${tableName}" for "${event}".`);
-      return {
-        unsubscribe: () => {
-          console.log(`⚠️ Sandbox Mock Broadcast: Unsubscribed from "${tableName}".`);
-        },
-      };
-    }
+
 
     const client = createKairoBrowserClient();
 

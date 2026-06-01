@@ -1,7 +1,12 @@
-import { supabase, isMockMode, localDb } from "@/lib/supabase";
-import { MOCK_TEMPLATES, MockDocument, MockTemplate, DocStatus, DocType } from "@/mock/documents";
+import { supabase } from "@/lib/supabase";
+// MOCK_TEMPLATES removed
+type DocStatus = any;
+type DocType = any;
+type MockTemplate = any;
+type MockDocument = any;
 import { proposalSchema, contractSchema, documentSchema } from "@/schemas";
 import { z } from "zod";
+import { generateDocumentAction } from "@/actions/documents";
 
 // ==========================================
 // 1. REPOSITORY AUDITING LOGS UTILITY
@@ -16,11 +21,7 @@ async function logDocumentActivity(clientId: string | null, action: string, deta
     created_at: new Date().toISOString()
   };
 
-  if (isMockMode) {
-    localDb.activityLogs.push(logEntry);
-    console.log(`[Document Audit Log] ${action} logged for Client: ${clientId || "Global"}`);
-  } else {
-    try {
+  try {
       if (clientId) {
         await supabase.from("client_activity_logs").insert({
           client_id: clientId,
@@ -32,7 +33,6 @@ async function logDocumentActivity(clientId: string | null, action: string, deta
     } catch (err) {
       console.error("Failed to persist operational audit log to Supabase:", err);
     }
-  }
 }
 
 // Interface for rich generated documents
@@ -58,10 +58,6 @@ export const documentService = {
 
   // A. TEMPLATE ENGINE
   async getTemplates(): Promise<MockTemplate[]> {
-    if (isMockMode) {
-      return MOCK_TEMPLATES;
-    }
-
     try {
       const { data, error } = await supabase
         .from("document_templates")
@@ -72,15 +68,8 @@ export const documentService = {
 
       if (!data || data.length === 0) {
         // Seed database templates dynamically if empty
-        const seededTemplates = MOCK_TEMPLATES.map(t => ({
-          name: t.name,
-          category: t.category.toLowerCase(),
-          content: `<h1>${t.name}</h1><p>${t.description}</p><p>Authorized Signature: {{signature}}</p>`,
-          created_by: "c76fb973-ec63-41c4-b816-56be794c483d"
-        }));
-
-        await supabase.from("document_templates").insert(seededTemplates);
-        return MOCK_TEMPLATES;
+        /* seed templates removed */
+        return [];
       }
 
       return data.map(item => ({
@@ -92,7 +81,7 @@ export const documentService = {
       }));
     } catch (error: any) {
       console.error("Error fetching templates, falling back to mock:", error.message);
-      return MOCK_TEMPLATES;
+      return [];
     }
   },
 
@@ -149,26 +138,6 @@ export const documentService = {
 
   // C. FETCH DOCUMENTS LIBRARY
   async getDocuments(): Promise<KairoDocument[]> {
-    if (isMockMode) {
-      return localDb.documents.map(d => {
-        const clientObj = localDb.clients.find(c => c.id === d.client_id);
-        return {
-          id: d.id,
-          clientId: d.client_id,
-          clientName: clientObj?.company || "Stoic Investments",
-          fileName: d.file_name,
-          filePath: d.file_path,
-          fileHash: d.file_hash,
-          docType: d.doc_type,
-          status: d.status,
-          createdAt: d.created_at,
-          updatedAt: d.created_at,
-          version: 1,
-          content: `<h1>${d.file_name}</h1><p>Document of type ${d.doc_type} in state ${d.status}.</p>`
-        };
-      });
-    }
-
     const { data, error } = await supabase
       .from("documents")
       .select("*, clients(company_name)")
@@ -203,43 +172,6 @@ export const documentService = {
     const filePath = `vault/${input.clientId}/${cleanTitle}_${Date.now()}.${fileExt}`;
     const fileHash = Math.random().toString(36).substr(2, 9); // Simple tracking hash
 
-    if (isMockMode) {
-      const parentClient = localDb.clients.find(c => c.id === input.clientId);
-      const mockDoc = {
-        id: `doc-${Date.now()}`,
-        client_id: input.clientId,
-        file_name: `${input.title}.pdf`,
-        file_path: filePath,
-        file_hash: fileHash,
-        doc_type: input.docType,
-        status: "DRAFT",
-        created_at: new Date().toISOString()
-      };
-
-      localDb.documents.push(mockDoc);
-
-      await logDocumentActivity(input.clientId, "DOCUMENT_GENERATED", { 
-        title: input.title, 
-        docType: input.docType,
-        filePath
-      });
-
-      return {
-        id: mockDoc.id,
-        clientId: input.clientId,
-        clientName: parentClient?.company || "Stoic Investments",
-        fileName: mockDoc.file_name,
-        filePath: mockDoc.file_path,
-        fileHash: mockDoc.file_hash,
-        docType: mockDoc.doc_type,
-        status: mockDoc.status,
-        createdAt: mockDoc.created_at,
-        updatedAt: mockDoc.created_at,
-        version: 1,
-        content: input.content
-      };
-    }
-
     // 1. Upload HTML document representation to Supabase Storage
     const fileBlob = new Blob([input.content], { type: "text/html" });
     const { error: uploadError } = await supabase.storage
@@ -252,86 +184,22 @@ export const documentService = {
 
     if (uploadError) throw new Error(`Storage upload failure: ${uploadError.message}`);
 
-    // 2. Insert into the documents table
-    const { data: docData, error: dbError } = await supabase
-      .from("documents")
-      .insert({
-        client_id: input.clientId,
-        file_name: `${input.title}.pdf`,
-        file_path: filePath,
-        file_hash: fileHash,
-        doc_type: input.docType,
-        status: "SENT"
-      })
-      .select("*, clients(company_name)")
-      .single();
-
-    if (dbError) throw new Error(`Database entry failure: ${dbError.message}`);
-
-    // 3. Document Version Control Insertion
-    const currentUserId = "c76fb973-ec63-41c4-b816-56be794c483d"; // Default Admin Signatory ID
-    await supabase.from("document_versions").insert({
-      document_id: docData.id,
-      version_number: 1,
-      file_path: filePath,
-      file_hash: fileHash,
-      created_by: currentUserId
+    // 2. Delegate relational insertions to secure Server Action
+    const res = await generateDocumentAction({
+      clientId: input.clientId,
+      docType: input.docType,
+      title: input.title,
+      filePath,
+      fileHash,
+      content: input.content,
+      metadata: input.metadata
     });
 
-    // 4. Create specific structural records if required
-    if (input.docType === "proposal") {
-      await supabase.from("proposals").insert({
-        client_id: input.clientId,
-        title: input.title,
-        budget_estimate: input.metadata?.price || 0,
-        scope_details: input.metadata?.summary || input.title,
-        status: "SENT"
-      });
-    } else if (input.docType === "contract" || input.docType === "nda" || input.docType === "sow") {
-      // Setup master agreement parent
-      const { data: agrData } = await supabase.from("agreements").insert({
-        client_id: input.clientId,
-        title: input.title,
-        status: "SENT"
-      }).select().single();
-
-      if (agrData && input.docType === "contract") {
-        await supabase.from("contracts").insert({
-          agreement_id: agrData.id,
-          client_id: input.clientId,
-          contract_terms: input.content,
-          governing_law: input.metadata?.governingLaw || "Delaware"
-        });
-      } else if (agrData && input.docType === "nda") {
-        await supabase.from("ndas").insert({
-          agreement_id: agrData.id,
-          client_id: input.clientId,
-          confidentiality_period: input.metadata?.confidentialityPeriod || "5 years",
-          permitted_use: input.metadata?.summary || "Mutual business evaluation"
-        });
-      }
+    if (!res.success) {
+      throw new Error(res.error);
     }
 
-    await logDocumentActivity(input.clientId, "DOCUMENT_GENERATED", { 
-      title: input.title, 
-      docType: input.docType,
-      filePath
-    });
-
-    return {
-      id: docData.id,
-      clientId: docData.client_id,
-      clientName: (docData.clients as unknown as { company_name: string })?.company_name || "Stoic Investments",
-      fileName: docData.file_name,
-      filePath: docData.file_path,
-      fileHash: docData.file_hash,
-      docType: docData.doc_type,
-      status: docData.status,
-      createdAt: docData.created_at,
-      updatedAt: docData.updated_at,
-      version: 1,
-      content: input.content
-    };
+    return res.data;
   },
 
   // E. UPLOAD CUSTOM DOCUMENT ATTACHMENT
@@ -339,36 +207,6 @@ export const documentService = {
     const fileExt = file.name.split(".").pop();
     const filePath = `vault/${clientId}/${Math.random().toString(36).substr(2, 9)}_${Date.now()}.${fileExt}`;
     const fileHash = `sha256-hash-${Math.random().toString(36).substr(2, 5)}`;
-
-    if (isMockMode) {
-      const parentClient = localDb.clients.find(c => c.id === clientId);
-      const mockDoc = {
-        id: `doc-${Date.now()}`,
-        client_id: clientId,
-        file_name: file.name,
-        file_path: filePath,
-        file_hash: fileHash,
-        doc_type: docType,
-        status: "COMPLETED",
-        created_at: new Date().toISOString()
-      };
-      localDb.documents.push(mockDoc);
-      await logDocumentActivity(clientId, "ATTACHMENT_UPLOADED", { fileName: file.name, path: filePath });
-
-      return {
-        id: mockDoc.id,
-        clientId: clientId,
-        clientName: parentClient?.company || "Stoic Investments",
-        fileName: mockDoc.file_name,
-        filePath: mockDoc.file_path,
-        fileHash: mockDoc.file_hash,
-        docType: mockDoc.doc_type,
-        status: mockDoc.status,
-        createdAt: mockDoc.created_at,
-        updatedAt: mockDoc.created_at,
-        version: 1
-      };
-    }
 
     const { error: uploadError } = await supabase.storage
       .from("documents")
@@ -410,29 +248,6 @@ export const documentService = {
 
   // F. DOWNLOAD SIGNED URL HANDSHAKE
   async getDownloadUrl(filePath: string): Promise<string> {
-    if (isMockMode) {
-      // In mock mode, we generate a stub data URI representing the HTML/PDF representation
-      const fileExt = filePath.split(".").pop();
-      if (fileExt === "html") {
-        return `data:text/html;charset=utf-8,${encodeURIComponent(`
-          <html>
-            <body style="font-family: sans-serif; padding: 40px; background-color: #f1f5f9;">
-              <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-                <h1 style="color: #0f172a; margin-bottom: 8px;">Kairo OS Enterprise Documents</h1>
-                <p style="color: #64748b; font-size: 14px;">Operational Infrastructure Systems Mock Generation</p>
-                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-                <div style="color: #334155; line-height: 1.6;">
-                  <h3>Document Reference: ${filePath}</h3>
-                  <p>This is a high-fidelity rendering simulation representing your generated executive document from Kairo OS.</p>
-                </div>
-              </div>
-            </body>
-          </html>
-        `)}`;
-      }
-      return "data:application/pdf;base64,JVBERi0xLjQKJdPpNDcKMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nIC9QYWdlcyAyIDAgUiA+PgplbmRvYmoKMiAwIG9iagogIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbIDMgMCBSIF0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKICA8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUgODQyIF0gPj4KZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMjcgMDAwMDAgbiAKdHJhaWxlcgogIDw8IC9TaXplIDQgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCiAxNzYKJSVFT0YK";
-    }
-
     const { data, error } = await supabase.storage
       .from("documents")
       .createSignedUrl(filePath, 3600); // 1-hour secure link validation
@@ -445,11 +260,6 @@ export const documentService = {
   async createDocumentRevision(documentId: string, content: string): Promise<number> {
     const fileHash = Math.random().toString(36).substr(2, 9);
     const currentUserId = "c76fb973-ec63-41c4-b816-56be794c483d";
-
-    if (isMockMode) {
-      await logDocumentActivity(null, "DOCUMENT_REVISED", { documentId });
-      return 2; // Simulated new version number
-    }
 
     // 1. Fetch document information to increment version
     const { data: document, error: fetchError } = await supabase

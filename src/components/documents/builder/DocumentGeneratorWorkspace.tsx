@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft, Send, Save, Download, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MOCK_TEMPLATES } from "@/mock/documents";
+
 import { dbService } from "@/services/db.service";
 import { documentService } from "@/services/document.service";
 import { ProposalBuilder } from "./ProposalBuilder";
@@ -19,7 +19,7 @@ interface WorkspaceProps {
 
 export const DocumentGeneratorWorkspace: React.FC<WorkspaceProps> = ({ templateId, onClose }) => {
   const queryClient = useQueryClient();
-  const template = MOCK_TEMPLATES.find(t => t.id === templateId);
+  const template = ([] as any[]).find((t: any) => t.id === templateId);
   const docType = template?.category || "Proposal"; // Fallback to Proposal if generating from scratch
 
   // A. RETRIEVE GLOBAL RELATIONSHIPS FROM THE CRM AND PROJECTS DATABASES

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { MOCK_AI_SUBSCRIPTIONS } from "@/mock/ai-ops";
 import { ShieldCheck, ToggleRight, DollarSign, Settings2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -20,7 +19,7 @@ export const SubscriptionsTab: React.FC = () => {
             </div>
 
             <div className="divide-y divide-slate-100">
-               {MOCK_AI_SUBSCRIPTIONS.map((sub, idx) => (
+               {([] as any[]).map((sub: any, idx: number) => (
                   <motion.div 
                     key={sub.id}
                     initial={{ opacity: 0 }}

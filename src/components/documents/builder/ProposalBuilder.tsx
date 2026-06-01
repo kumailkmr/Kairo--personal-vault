@@ -2,10 +2,10 @@
 
 import React from "react";
 import { User, Briefcase, FileText, CheckSquare, Settings, Plus, Trash2 } from "lucide-react";
-import { CRMClient } from "@/mock/clients";
+
 
 interface ProposalBuilderProps {
-  clients: CRMClient[];
+  clients: any[];
   clientId: string;
   setClientId: (val: string) => void;
   projectName: string;

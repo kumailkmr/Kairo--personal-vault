@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 /**
  * centralizes error logging, mapping PostgREST codes (e.g., RLS violations, duplicates)
  * into premium operational logs.
@@ -62,7 +64,7 @@ export const kairoErrors = {
    */
   audit(err: any, context?: string) {
     const normalized = this.normalize(err);
-    console.error(`🛡️ Kairo Security Audit [${context || "System"}]:`, {
+    logger.error("SECURITY", `Kairo Security Audit [${context || "System"}]`, {
       code: normalized.code,
       message: normalized.message,
       details: normalized.originalError,

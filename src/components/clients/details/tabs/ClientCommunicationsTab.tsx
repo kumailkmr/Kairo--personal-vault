@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { MOCK_CLIENT_COMMS } from "@/mock/clients";
 import { motion } from "framer-motion";
 import { Mail, MessageCircle, Bot, Search } from "lucide-react";
 
@@ -33,7 +32,7 @@ export const ClientCommunicationsTab: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-4">
-        {MOCK_CLIENT_COMMS.map((comm, idx) => (
+        {([] as any[]).map((comm: any, idx: number) => (
           <motion.div 
             key={comm.id}
             initial={{ opacity: 0, x: -10 }}

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CheckCircle2, X } from "lucide-react";
-import { MOCK_PROJECT_REQUESTS } from "@/mock/requests";
+
 
 export const InquiryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [formState, setFormState] = useState<"idle" | "submitting" | "success">("idle");
@@ -43,7 +43,7 @@ export const InquiryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     };
 
     setTimeout(() => {
-      MOCK_PROJECT_REQUESTS.unshift(newRequest); // Add to the front of the list
+      // MOCK_PROJECT_REQUESTS.unshift(newRequest);
       setFormState("success");
     }, 1500);
   };

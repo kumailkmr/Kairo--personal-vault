@@ -5,3 +5,6 @@ export * from "./meeting.schema";
 export * from "./invoice.schema";
 export * from "./document.schema";
 export * from "./comms.schema";
+export * from "./goals.schema";
+export * from "./notifications.schema";
+export * from "./ai.schema";

@@ -3,13 +3,15 @@
 import React, { useState } from "react";
 import { PageHeader } from "@/components/shared/layouts/PageHeader";
 import { NotificationPreferences } from "./NotificationPreferences";
-import { MOCK_PROJECT_REQUESTS, ProjectRequest, RequestStatus } from "@/mock/requests";
+import { SoundSettingsPanel } from "./SoundSettingsPanel";
+type ProjectRequest = any;
+type RequestStatus = any;
 import { Settings, ShieldCheck, ToggleRight, ToggleLeft, Sliders, Palette, Zap, Sparkles, UserCheck, Inbox, Eye, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const SettingsWorkspace: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"system" | "requests" | "personalization" | "security">("system");
-  const [requests, setRequests] = useState<ProjectRequest[]>(MOCK_PROJECT_REQUESTS);
+  const [requests, setRequests] = useState<ProjectRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<ProjectRequest | null>(null);
 
   // Mock settings states
@@ -20,9 +22,9 @@ export const SettingsWorkspace: React.FC = () => {
   const [animationIntensity, setAnimationIntensity] = useState("Standard Smooth");
 
   const updateRequestStatus = (id: string, newStatus: RequestStatus) => {
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: newStatus } : req));
+    setRequests((prev: any) => prev.map((req: any) => req.id === id ? { ...req, status: newStatus } : req));
     if (selectedRequest && selectedRequest.id === id) {
-      setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);
+      setSelectedRequest((prev: any) => prev ? { ...prev, status: newStatus } : null);
     }
   };
 
@@ -164,6 +166,7 @@ export const SettingsWorkspace: React.FC = () => {
                        {/* Right Column: Notification Panel */}
                        <div className="lg:col-span-1">
                           <NotificationPreferences />
+                          <SoundSettingsPanel />
                        </div>
                     </>
                  )}

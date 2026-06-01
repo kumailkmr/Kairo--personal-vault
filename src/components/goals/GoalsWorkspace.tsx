@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import { PageHeader } from "@/components/shared/layouts/PageHeader";
-import { MOCK_GOALS, MOCK_ROADMAP, PersonalGoal, RoadmapItem } from "@/mock/personal-os";
+type PersonalGoal = any;
+type RoadmapItem = any;
 import { Target, Calendar, Plus, ChevronRight, Briefcase, Award, TrendingUp, Sliders } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const GoalsWorkspace: React.FC = () => {
   const [activeView, setActiveView] = useState<"goals" | "roadmap">("goals");
-  const [goals, setGoals] = useState<PersonalGoal[]>(MOCK_GOALS);
-  const [roadmaps, setRoadmaps] = useState<RoadmapItem[]>(MOCK_ROADMAP);
+  const [goals, setGoals] = useState<PersonalGoal[]>([]);
+  const [roadmaps, setRoadmaps] = useState<RoadmapItem[]>([]);
 
   return (
     <>
@@ -140,7 +141,7 @@ export const GoalsWorkspace: React.FC = () => {
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2">
-                                   {item.dependencies.map(dep => (
+                                   {item.dependencies.map((dep: any) => (
                                       <span key={dep} className="text-[9px] font-bold text-slate-500 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
                                          Dep: {dep}
                                       </span>

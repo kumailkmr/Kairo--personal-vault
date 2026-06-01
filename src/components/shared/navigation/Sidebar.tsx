@@ -3,8 +3,9 @@
 import React from "react";
 import { Cpu, ShieldCheck } from "lucide-react";
 import { NAVIGATION_ITEMS } from "@/constants/navigation";
-import { SYSTEM_COUNTS } from "@/mock";
 import { cn } from "@/utils/cn";
+
+import { useAuth } from "@/providers/AuthProvider";
 
 export interface SidebarProps {
   currentPath: string;
@@ -19,13 +20,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenOnMobile,
   onCloseMobile
 }) => {
+  const { user } = useAuth();
+
   const getBadgeValue = (key?: string) => {
-    if (!key) return null;
-    return (SYSTEM_COUNTS as Record<string, number>)[key] || null;
+    return null;
   };
 
   const renderNavSection = (sectionName: "workspace" | "personal" | "system", heading: string) => {
-    const items = NAVIGATION_ITEMS.filter(item => item.section === sectionName);
+    let items = NAVIGATION_ITEMS.filter(item => item.section === sectionName);
+
+    if (sectionName === "system" && user?.role === "OPERATOR") {
+      items = [
+        ...items,
+        {
+          name: "Security Admin",
+          href: "/admin/security",
+          icon: ShieldCheck,
+          section: "system"
+        }
+      ];
+    }
     
     return (
       <div className="flex flex-col gap-1.5 mt-6">
@@ -38,7 +52,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const IconComponent = item.icon;
             const isActive = currentPath === item.href;
             const badgeVal = getBadgeValue(item.badgeKey);
-
+            const isSecurity = item.href === "/admin/security";
+ 
             return (
               <button
                 key={item.name}
@@ -49,14 +64,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={cn(
                   "group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-heading font-medium tracking-wide transition-all duration-200 cursor-pointer text-left relative",
                   isActive 
-                    ? "bg-white text-kairo-blue border border-kairo-border shadow-sm active-nav-glow" 
-                    : "text-foreground-secondary hover:text-foreground-primary hover:bg-slate-50 border border-transparent"
+                    ? (isSecurity ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-sm" : "bg-white text-kairo-blue border border-kairo-border shadow-sm active-nav-glow") 
+                    : cn(
+                        "text-foreground-secondary hover:text-foreground-primary hover:bg-slate-50 border border-transparent",
+                        isSecurity && "text-red-400/90 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10"
+                      )
                 )}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <IconComponent className={cn(
                     "w-4 h-4 transition-colors shrink-0",
-                    isActive ? "text-kairo-blue" : "text-slate-400 group-hover:text-foreground-primary"
+                    isActive 
+                      ? (isSecurity ? "text-red-400" : "text-kairo-blue")
+                      : (isSecurity ? "text-red-400 group-hover:text-red-300" : "text-slate-400 group-hover:text-foreground-primary")
                   )} />
                   <span className="truncate">{item.name}</span>
                 </div>

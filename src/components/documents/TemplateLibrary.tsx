@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { MOCK_TEMPLATES } from "@/mock/documents";
+
 import { motion } from "framer-motion";
 import { LayoutTemplate, Plus, ExternalLink } from "lucide-react";
 
 export const TemplateLibrary: React.FC<{ onSelectTemplate: (id: string) => void }> = ({ onSelectTemplate }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {MOCK_TEMPLATES.map((tpl, idx) => (
+      {([] as any[]).map((tpl: any, idx: any) => (
         <motion.div 
           key={tpl.id}
           initial={{ opacity: 0, scale: 0.95 }}
@@ -53,7 +53,7 @@ export const TemplateLibrary: React.FC<{ onSelectTemplate: (id: string) => void 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: MOCK_TEMPLATES.length * 0.1 }}
+        transition={{ delay: 0 }}
         className="bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-kairo-blue/40 hover:bg-blue-50/30 transition-all min-h-[250px]"
       >
         <div className="p-3 bg-white text-slate-400 rounded-full shadow-sm mb-4">

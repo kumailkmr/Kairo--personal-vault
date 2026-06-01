@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { MOCK_CLIENT_DOCUMENTS } from "@/mock/clients";
 import { motion } from "framer-motion";
 import { FileText, Download, UploadCloud, FileType2, Presentation, Archive } from "lucide-react";
 
@@ -28,7 +27,7 @@ export const ClientDocumentsTab: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {MOCK_CLIENT_DOCUMENTS.map((doc, idx) => (
+        {([] as any[]).map((doc: any, idx: number) => (
           <motion.div 
             key={doc.id}
             initial={{ opacity: 0, scale: 0.95 }}

@@ -1,5 +1,5 @@
 import { createKairoAdminClient } from "@/lib/supabase/admin";
-import { isMockMode } from "@/lib/supabase/env";
+
 
 /**
  * Enterprise-grade development database seeding orchestration system.
@@ -19,14 +19,7 @@ export const seedService = {
       };
     }
 
-    if (isMockMode) {
-      console.log("ℹ️ Kairo OS Seeder: Sandbox mock mode is active. DB seeding skipped.");
-      return {
-        success: true,
-        seededCount: 0,
-        error: null,
-      };
-    }
+
 
     const admin = createKairoAdminClient();
     let seededCount = 0;

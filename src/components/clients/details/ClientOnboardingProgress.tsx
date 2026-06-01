@@ -2,9 +2,8 @@
 
 import React from "react";
 import { CheckCircle2, Circle, ArrowRight } from "lucide-react";
-import { CRMClient, OnboardingStage } from "@/mock/clients";
 
-const STAGES: OnboardingStage[] = [
+const STAGES: any[] = [
   "Intake Form",
   "Assets Received",
   "Agreements Signed",
@@ -12,7 +11,7 @@ const STAGES: OnboardingStage[] = [
   "Fully Onboarded"
 ];
 
-export const ClientOnboardingProgress: React.FC<{ client: CRMClient }> = ({ client }) => {
+export const ClientOnboardingProgress: React.FC<{ client: any }> = ({ client }) => {
   const currentStageIndex = STAGES.indexOf(client.onboardingStage);
 
   return (

@@ -11,7 +11,8 @@ import {
   Cpu, 
   Settings,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Activity
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -107,6 +108,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     name: "Settings",
     href: "/settings",
     icon: Settings,
+    section: "system"
+  },
+  {
+    name: "Operations",
+    href: "/admin/operations",
+    icon: Activity,
     section: "system"
   }
 ];

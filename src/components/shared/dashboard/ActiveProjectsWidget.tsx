@@ -1,73 +1,79 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
-import { MOCK_PROJECTS } from "@/mock";
-import { KairoBadge } from "@/components/ui/KairoBadge";
+import { FolderGit2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { dbService } from "@/services/db.service";
 
-export const ActiveProjectsWidget: React.FC<{ onNavigate: (href: string) => void }> = ({ onNavigate }) => {
+export const ActiveProjectsWidget: React.FC<{ onNavigate?: (href: string) => void }> = ({ onNavigate }) => {
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => dbService.getProjects()
+  });
+
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden">
-      <div className="p-5 border-b border-slate-50 flex items-center justify-between">
-        <h3 className="text-xs font-heading font-bold text-gray-900 tracking-widest uppercase">
-          Operational Project Pipeline
-        </h3>
-        <button onClick={() => onNavigate("/projects")} className="text-[10px] font-bold text-slate-400 hover:text-kairo-blue flex items-center gap-1 uppercase tracking-widest transition-colors">
-          View All <ArrowRight className="w-3 h-3" />
-        </button>
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[320px]">
+      <div className="flex items-center justify-between p-6 border-b border-slate-50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-kairo-blue-light/50 rounded-xl">
+            <FolderGit2 className="w-4 h-4 text-kairo-blue" />
+          </div>
+          <h3 className="text-sm font-heading font-bold text-gray-900 uppercase tracking-wide">Active Projects</h3>
+        </div>
+        <span className="text-[10px] font-bold text-kairo-blue bg-kairo-blue-light px-2.5 py-1 rounded-full uppercase tracking-wider">
+          {projects.filter((p: any) => p.status === 'active' || p.status === 'in-progress' || p.status === 'review').length} Active
+        </span>
       </div>
 
-      <div className="overflow-x-auto flex-1">
-        <table className="w-full text-left border-collapse min-w-[500px]">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-heading font-bold text-slate-400 uppercase tracking-widest">
-              <th className="px-5 py-3 font-semibold">Project Name</th>
-              <th className="px-5 py-3 font-semibold">Client</th>
-              <th className="px-5 py-3 font-semibold">Completion</th>
-              <th className="px-5 py-3 font-semibold text-right">Budget</th>
-              <th className="px-5 py-3 font-semibold text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50 text-xs text-gray-600">
-            {MOCK_PROJECTS.slice(0, 4).map((proj) => {
-              let statusColor: "primary" | "success" | "warning" | "neutral" = "neutral";
-              let statusLabel = "Planning";
-
-              if (proj.status === "in_progress") {
-                statusColor = "primary";
-                statusLabel = "In Progress";
-              } else if (proj.status === "completed") {
-                statusColor = "success";
-                statusLabel = "Completed";
-              } else if (proj.status === "review") {
-                statusColor = "warning";
-                statusLabel = "Under Review";
+      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar p-2">
+        {projects.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-xs text-slate-400">
+            No active projects
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {projects.slice(0, 4).map((proj: any) => {
+              
+              let StatusIcon = Clock;
+              let statusColor = "text-amber-500 bg-amber-50";
+              
+              if (proj.status === 'completed') {
+                StatusIcon = CheckCircle2;
+                statusColor = "text-emerald-500 bg-emerald-50";
+              } else if (proj.status === 'blocked') {
+                StatusIcon = AlertCircle;
+                statusColor = "text-red-500 bg-red-50";
+              } else if (proj.status === 'in-progress' || proj.status === 'active' || proj.status === 'review') {
+                statusColor = "text-kairo-blue bg-kairo-blue-light";
               }
 
               return (
-                <tr key={proj.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-3 font-semibold text-gray-900">{proj.name}</td>
-                  <td className="px-5 py-3 font-medium text-slate-500">{proj.clientName}</td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0">
-                        <div 
-                          className="h-full bg-kairo-blue rounded-full transition-all duration-500" 
-                          style={{ width: `${proj.progress}%` }}
-                        />
-                      </div>
-                      <span className="font-mono font-bold text-[10px] text-slate-400">{proj.progress}%</span>
+                <div 
+                  key={proj.id} 
+                  onClick={() => onNavigate && onNavigate("/projects")}
+                  className="flex items-center gap-4 p-4 hover:bg-slate-50/80 rounded-xl transition-colors cursor-pointer group"
+                >
+                  <div className={`p-2 rounded-lg shrink-0 transition-transform group-hover:scale-110 ${statusColor}`}>
+                    <StatusIcon className="w-4 h-4" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-gray-900 truncate">{proj.name}</h4>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5">{proj.clientName}</p>
+                  </div>
+                  
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="text-xs font-bold text-gray-900 font-mono">{proj.progress}%</span>
+                    <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-kairo-blue rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${proj.progress}%` }}
+                      />
                     </div>
-                  </td>
-                  <td className="px-5 py-3 font-mono font-medium text-slate-500 text-right">
-                    {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(proj.budget)}
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <KairoBadge variant={statusColor}>{statusLabel}</KairoBadge>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
     </div>
   );

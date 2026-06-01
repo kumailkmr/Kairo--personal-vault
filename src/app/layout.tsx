@@ -20,8 +20,11 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/providers/AuthProvider";
+import { RealtimeProvider } from "@/providers/RealtimeProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { BootManager } from "@/components/shared/BootManager";
+import { CriticalAlertOverlay } from "@/components/shared/CriticalAlertOverlay";
 
 export default function RootLayout({
   children,
@@ -36,9 +39,14 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans bg-background-secondary text-foreground-primary">
         <QueryProvider>
           <AuthProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <RealtimeProvider>
+              <ToastProvider>
+                <BootManager>
+                  <CriticalAlertOverlay />
+                  {children}
+                </BootManager>
+              </ToastProvider>
+            </RealtimeProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

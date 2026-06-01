@@ -2,15 +2,23 @@
 
 import React, { useState } from "react";
 import { PageHeader } from "@/components/shared/layouts/PageHeader";
-import { MOCK_HABITS, MOCK_FOCUS_BLOCKS, MOCK_REFLECTIONS, MOCK_PRODUCTIVITY_METRICS, HabitItem, FocusBlock, ReflectionEntry } from "@/mock/personal-os";
+type HabitItem = any;
+type FocusBlock = any;
+type ReflectionEntry = any;
+const MOCK_PRODUCTIVITY_METRICS = {
+  consistencyScore: 0,
+  focusHoursThisWeek: 0,
+  taskCompletionRate: 0,
+  weeklyTrend: [] as any[]
+};
 import { Heart, Activity, Sliders, CheckSquare, Square, FileText, Plus, CheckCircle2, Trophy, Clock, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const PersonalWorkspace: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"life" | "analytics" | "notes">("life");
-  const [habits, setHabits] = useState<HabitItem[]>(MOCK_HABITS);
-  const [focusBlocks, setFocusBlocks] = useState<FocusBlock[]>(MOCK_FOCUS_BLOCKS);
-  const [reflections, setReflections] = useState<ReflectionEntry[]>(MOCK_REFLECTIONS);
+  const [habits, setHabits] = useState<HabitItem[]>([]);
+  const [focusBlocks, setFocusBlocks] = useState<FocusBlock[]>([]);
+  const [reflections, setReflections] = useState<ReflectionEntry[]>([]);
   const [noteSearch, setNoteSearch] = useState("");
 
   const toggleHabit = (id: string) => {
@@ -217,7 +225,7 @@ export const PersonalWorkspace: React.FC = () => {
                           </div>
 
                           <div className="flex items-end justify-between gap-2 h-48 pt-6 px-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             {MOCK_PRODUCTIVITY_METRICS.weeklyTrend.map(day => (
+                             {MOCK_PRODUCTIVITY_METRICS.weeklyTrend.map((day: any) => (
                                 <div key={day.day} className="flex flex-col items-center gap-2 flex-1 group cursor-pointer">
                                    <div className="text-[10px] font-bold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity font-sans">{day.hours}h</div>
                                    <div 

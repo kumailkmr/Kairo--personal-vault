@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { CRMClient } from "@/mock/clients";
+
 import { ClientOnboardingProgress } from "../ClientOnboardingProgress";
 import { motion } from "framer-motion";
 import { CheckSquare, Square } from "lucide-react";
 
-export const ClientOnboardingTab: React.FC<{ client: CRMClient }> = ({ client }) => {
+export const ClientOnboardingTab: React.FC<{ client: any }> = ({ client }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}

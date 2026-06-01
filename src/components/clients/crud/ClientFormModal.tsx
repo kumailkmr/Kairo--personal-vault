@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import { X, User, Briefcase, Mail, Phone, Tag, DollarSign, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clientSchema } from "@/schemas/client";
-import { CRMClient } from "@/mock/clients";
 import { useToast } from "@/hooks/useToast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { dbService } from "@/services/db.service";
 
 interface ClientFormModalProps {
   onClose: () => void;
-  onSuccess: (newClient: CRMClient) => void;
+  onSuccess: (newClient: any) => void;
 }
 
 export const ClientFormModal: React.FC<ClientFormModalProps> = ({ onClose, onSuccess }) => {

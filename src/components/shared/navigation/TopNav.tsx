@@ -2,11 +2,15 @@
 
 import React, { useState } from "react";
 import { Search, Bell, Menu, Check, Cpu, Calendar, AlertCircle, Lock, LogOut } from "lucide-react";
-import { MOCK_USER, MOCK_NOTIFICATIONS } from "@/mock";
 import { cn } from "@/utils/cn";
 import { useToast } from "@/hooks/useToast";
 import { SystemStatusIndicator } from "./SystemStatusIndicator";
 import { useAuth } from "@/providers/AuthProvider";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { dbService } from "@/services/db.service";
+import { useDeadlineIntelligence } from "@/hooks/useDeadlineIntelligence";
+import { NotificationItem } from "@/types";
+import { markNotificationReadAction, markAllNotificationsReadAction } from "@/actions/notifications";
 
 export interface TopNavProps {
   onToggleSidebar: () => void;
@@ -17,39 +21,75 @@ export const TopNav: React.FC<TopNavProps> = ({
   onToggleSidebar,
   onOpenCommandPalette
 }) => {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [showNotifications, setShowNotifications] = useState(false);
   const { toast } = useToast();
   const { user, lockWorkspace, logout } = useAuth();
+  const queryClient = useQueryClient();
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const { data: dbNotifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => dbService.getNotifications(),
+    refetchInterval: 60000
+  });
+
+  const { warnings } = useDeadlineIntelligence();
+
+  // Combine DB notifications with intelligence engine warnings
+  const combinedNotifications: NotificationItem[] = [
+    ...dbNotifications,
+    ...warnings.map(w => ({
+      id: w.id,
+      title: w.title,
+      message: `${w.daysRemaining} days remaining for ${w.entityType}`,
+      time: "Just now",
+      read: false,
+      type: "deadline" as const,
+      priority: w.urgency === "critical" ? "critical" : w.urgency === "high" ? "important" : "standard"
+    }))
+  ];
+
+  const unreadCount = combinedNotifications.filter(n => !n.read).length;
+
+  const markReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Note: deadline warnings are not stored in DB, they can't be "marked read" in the db.
+      if (id.startsWith("proj-warn-")) return;
+      return markNotificationReadAction(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast({
+        title: "Notification Cleared",
+        description: "Alert was marked as read.",
+        type: "activity"
+      });
+    }
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => markAllNotificationsReadAction(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast({
+        title: "Logs Cleared",
+        description: "All notifications marked as read.",
+        type: "activity"
+      });
+      setShowNotifications(false);
+    }
+  });
 
   const handleMarkAsRead = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    toast({
-      title: "Notification Cleared",
-      description: "Alert was marked as read.",
-      type: "activity"
-    });
+    markReadMutation.mutate(id);
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    toast({
-      title: "Logs Cleared",
-      description: "All notifications marked as read.",
-      type: "activity"
-    });
-    setShowNotifications(false);
+    markAllReadMutation.mutate();
   };
 
-  const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase();
-  };
-
-  const userName = user?.name || MOCK_USER.name;
-  const userRole = user?.role || MOCK_USER.role;
+  const userName = user?.name || "Executive User";
+  const userRole = user?.role || "OWNER";
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between w-full h-16 px-6 bg-white/80 backdrop-blur-md border-b border-kairo-border/80 select-none">
@@ -63,7 +103,6 @@ export const TopNav: React.FC<TopNavProps> = ({
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Mock Search input acting as Command Palette trigger */}
         <button
           onClick={onOpenCommandPalette}
           className="flex items-center gap-3 w-full max-w-[280px] px-3.5 py-2.5 rounded-xl border border-kairo-border bg-slate-50/50 hover:bg-slate-50 hover:border-kairo-border-hover transition-colors text-slate-400 group cursor-pointer"
@@ -81,7 +120,7 @@ export const TopNav: React.FC<TopNavProps> = ({
       {/* Utilities: Notifications & Profile */}
       <div className="flex items-center gap-4.5 shrink-0">
         
-        <SystemStatusIndicator status="synchronized" />
+        <SystemStatusIndicator />
 
         {/* Lock Workspace Trigger */}
         <button
@@ -136,8 +175,8 @@ export const TopNav: React.FC<TopNavProps> = ({
                 </div>
 
                 <div className="flex flex-col max-h-[300px] overflow-y-auto">
-                  {notifications.length > 0 ? (
-                    notifications.map((notif) => {
+                  {combinedNotifications.length > 0 ? (
+                    combinedNotifications.map((notif) => {
                       let Icon = Bell;
                       let iconClass = "text-kairo-blue bg-kairo-blue-light";
 

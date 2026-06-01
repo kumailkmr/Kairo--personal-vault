@@ -2,11 +2,11 @@
 
 import React from "react";
 import { Scale, FileText, ChevronDown, Check, User } from "lucide-react";
-import { CRMClient } from "@/mock/clients";
+
 
 interface ContractBuilderProps {
   type: string;
-  clients: CRMClient[];
+  clients: any[];
   clientId: string;
   setClientId: (val: string) => void;
   governingLaw: string;

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { User, Calendar, Plus, Settings, Trash2 } from "lucide-react";
-import { CRMClient } from "@/mock/clients";
+
 import { Project } from "@/types";
 
 interface InvoiceBuilderProps {
-  clients: CRMClient[];
+  clients: any[];
   projects: Project[];
   clientId: string;
   setClientId: (val: string) => void;

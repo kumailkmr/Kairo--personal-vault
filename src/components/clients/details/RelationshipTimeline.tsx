@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Calendar, FileText, DollarSign, UploadCloud, CheckCircle } from "lucide-react";
-import { MOCK_CLIENT_TIMELINE } from "@/mock/clients";
 import { motion } from "framer-motion";
 
 export const RelationshipTimeline: React.FC = () => {
@@ -31,7 +30,7 @@ export const RelationshipTimeline: React.FC = () => {
       <h3 className="text-sm font-heading font-bold text-gray-900 tracking-widest uppercase mb-8">Operational Timeline</h3>
       
       <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-100 space-y-8">
-        {MOCK_CLIENT_TIMELINE.map((event, idx) => (
+        {([] as any[]).map((event: any, idx: number) => (
           <motion.div 
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}

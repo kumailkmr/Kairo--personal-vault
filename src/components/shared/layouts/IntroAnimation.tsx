@@ -30,67 +30,91 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
           key="intro-screen"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0b] overflow-hidden"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#fafafa] overflow-hidden pointer-events-none"
         >
           {/* Subtle Ambient Background Effects */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.08),transparent_40%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,10,11,0)_0%,rgba(10,10,11,1)_100%)]" />
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiLz48L3N2Zz4=')] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.06),transparent_60%)]" />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1.2 }}
+            transition={{ duration: 4, ease: "easeOut" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-kairo-blue/5 blur-[120px] rounded-full pointer-events-none"
+          />
 
-          <div className="relative z-10 flex flex-col items-center justify-center space-y-12">
+          <div className="relative z-10 flex flex-col items-center justify-center space-y-16">
             
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center space-y-4"
+              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center space-y-8"
             >
               {/* Premium Executive Logo */}
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-b from-kairo-blue to-blue-700 shadow-2xl shadow-kairo-blue/30 border border-blue-400/30">
-                <div className="absolute inset-0 rounded-2xl bg-white/10 [mask-image:linear-gradient(to_bottom,white,transparent)]" />
-                <span className="text-3xl font-bold tracking-tighter text-white relative z-10 drop-shadow-md">K</span>
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-white shadow-[0_20px_60px_rgb(0,0,0,0.08)] border border-slate-100/50 group">
+                <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white to-slate-50/50" />
+                <motion.span 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                  className="text-5xl font-heading font-light tracking-tighter text-kairo-blue relative z-10 drop-shadow-sm"
+                >
+                  K
+                </motion.span>
+                <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_1px_1px_rgba(255,255,255,1)]" />
               </div>
               
               <div className="flex flex-col items-center justify-center pt-2">
-                <h1 className="text-2xl font-heading font-light tracking-[0.3em] text-gray-200 uppercase">
+                <motion.h1 
+                  initial={{ opacity: 0, letterSpacing: "0.1em" }}
+                  animate={{ opacity: 1, letterSpacing: "0.2em" }}
+                  transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+                  className="text-3xl font-heading font-light text-gray-900 uppercase"
+                >
                   Kairo OS
-                </h1>
-                <p className="text-[9px] font-sans text-kairo-blue font-bold tracking-widest uppercase mt-2 opacity-80">
-                  Private Executive Workspace
-                </p>
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.6 }}
+                  className="text-[11px] font-sans text-slate-400 font-bold tracking-[0.25em] uppercase mt-3"
+                >
+                  Executive Operating System
+                </motion.p>
               </div>
             </motion.div>
 
             {/* Premium Loading Sequence */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1 }}
-              className="flex flex-col items-center space-y-4 w-64"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+              className="flex flex-col items-center space-y-6 w-80"
             >
-              {/* Progress Bar */}
-              <div className="w-full h-[2px] bg-gray-900 rounded-full overflow-hidden relative">
+              {/* Progress Line */}
+              <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
                 <motion.div 
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 2.2, ease: "easeInOut", delay: 0.8 }}
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 via-blue-400 to-kairo-blue rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]"
-                />
+                  transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1], delay: 0.8 }}
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-kairo-blue/80 to-kairo-blue rounded-full"
+                >
+                  <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-white/50 blur-[2px]" />
+                </motion.div>
               </div>
 
               {/* Status Text */}
-              <div className="flex items-center space-x-3 text-gray-500 text-[10px] tracking-widest uppercase font-mono">
+              <div className="flex items-center space-x-3 text-[10px] tracking-widest uppercase font-mono h-4">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-kairo-blue opacity-75"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-kairo-blue/60"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-kairo-blue"></span>
                 </span>
                 <AnimatePresence mode="wait">
                   {phase === "enter" ? (
-                    <motion.span key="init" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-gray-400">
+                    <motion.span key="init" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="text-slate-400 font-semibold">
                       Authenticating Identity
                     </motion.span>
                   ) : (
-                    <motion.span key="sync" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-blue-400">
+                    <motion.span key="sync" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="text-kairo-blue font-bold">
                       Synchronizing Systems
                     </motion.span>
                   )}
@@ -98,6 +122,15 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
               </div>
             </motion.div>
           </div>
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.8, duration: 1 }}
+            className="absolute bottom-12 text-[10px] uppercase tracking-[0.3em] text-slate-300 font-bold"
+          >
+            Built for Kumail KMR
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

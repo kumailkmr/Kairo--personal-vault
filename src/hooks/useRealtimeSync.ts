@@ -1,24 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { realtimeEngine } from "@/services/realtime";
+import { useRealtime } from "@/providers/RealtimeProvider";
 
 /**
-   * Custom hook to bind PostgreSQL table changes directly to TanStack Query cache lifecycle.
-   * Intercepts insertions/updates/deletions and forces instant state invalidations.
-   */
+ * Custom hook to bind PostgreSQL table changes directly to TanStack Query cache lifecycle.
+ * Intercepts insertions/updates/deletions and forces instant state invalidations.
+ */
 export function useRealtimeSync(tableName: string, queryKeysToInvalidate: Array<string | string[] | any>) {
   const queryClient = useQueryClient();
+  const { subscribeToTable } = useRealtime();
+  
+  // Use a ref to keep the latest query keys, preventing subscription churn if array literals change references
+  const keysRef = useRef(queryKeysToInvalidate);
+  useEffect(() => {
+    keysRef.current = queryKeysToInvalidate;
+  }, [queryKeysToInvalidate]);
 
   useEffect(() => {
-    console.log(`[Realtime Hook] Activating replication listener for table: ${tableName}`);
-
-    const subscription = realtimeEngine.subscribeToTable(tableName, (payload) => {
-      console.log(
-        `[Realtime Hook] Mutation received: ${payload.event} on table: ${tableName}. Re-syncing caches...`
-      );
-
+    const unsubscribe = subscribeToTable(tableName, (payload) => {
       // Invalidate all configured TanStack Query keys to trigger live fetches
-      queryKeysToInvalidate.forEach((queryKey) => {
+      keysRef.current.forEach((queryKey) => {
         queryClient.invalidateQueries({
           queryKey: Array.isArray(queryKey) ? queryKey : [queryKey],
           exact: false
@@ -27,8 +28,7 @@ export function useRealtimeSync(tableName: string, queryKeysToInvalidate: Array<
     });
 
     return () => {
-      console.log(`[Realtime Hook] Dismantling replication listener for table: ${tableName}`);
-      subscription.unsubscribe();
+      unsubscribe();
     };
-  }, [tableName, queryClient]); // Re-subscribe if tableName or queryClient changes
+  }, [tableName, queryClient, subscribeToTable]); // Re-subscribe if tableName or queryClient or subscribeToTable changes
 }

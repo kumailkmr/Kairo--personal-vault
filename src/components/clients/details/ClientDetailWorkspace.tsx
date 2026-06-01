@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { ArrowLeft, Edit, MessageSquare, Plus, CheckCircle, Tag, Grid, LayoutTemplate, Briefcase, DollarSign, Calendar, FileText, Bot, Clock, UploadCloud, Settings } from "lucide-react";
-import { MOCK_CRM_CLIENTS } from "@/mock/clients";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Tab Components
@@ -33,7 +32,7 @@ const TABS: { id: TabType; label: string; icon: React.FC<any> }[] = [
 ];
 
 export const ClientDetailWorkspace: React.FC<{ clientId: string; onBack: () => void }> = ({ clientId, onBack }) => {
-  const client = MOCK_CRM_CLIENTS.find(c => c.id === clientId);
+  const client = ([] as any[]).find((c: any) => c.id === clientId);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
 
   if (!client) return null;
@@ -75,7 +74,7 @@ export const ClientDetailWorkspace: React.FC<{ clientId: string; onBack: () => v
               </p>
               
               <div className="flex flex-wrap items-center gap-2 mt-4">
-                {client.tags.map(tag => (
+                {client.tags.map((tag: any) => (
                   <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-lg">
                     <Tag className="w-3 h-3" /> {tag}
                   </span>

@@ -3,7 +3,6 @@
 import React from "react";
 import { Briefcase } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
-import { MOCK_PROJECT_PERFORMANCE } from "@/mock/analytics";
 
 export const ProjectPerformanceWidget: React.FC = () => {
   return (
@@ -19,7 +18,7 @@ export const ProjectPerformanceWidget: React.FC = () => {
 
       <div className="flex-1 min-h-0 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={MOCK_PROJECT_PERFORMANCE} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+          <BarChart data={[]} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }} dy={10} />
             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }} />

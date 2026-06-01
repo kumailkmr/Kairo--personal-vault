@@ -19,7 +19,8 @@ export const projectTaskSchema = z.object({
   dueDate: z.string().datetime({ message: "Invalid ISO date-time string." }).optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "REVIEW", "DONE"]).default("TODO"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("MEDIUM"),
-  assigneeId: z.string().uuid({ message: "Invalid assignee user ID." }).optional()
+  assigneeId: z.string().uuid({ message: "Invalid assignee user ID." }).optional(),
+  milestoneId: z.string().uuid({ message: "Invalid milestone relationship UUID." }).optional()
 });
 
 // Master validation model for project creation and updates

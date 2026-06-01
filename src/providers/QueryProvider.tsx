@@ -8,18 +8,29 @@ interface QueryProviderProps {
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  // Prevent QueryClient re-creation on component re-renders
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minute stale buffer
-            gcTime: 5 * 60 * 1000,  // 5 minutes garbage collection
-            refetchOnWindowFocus: false, // Prevent aggressive focus refetches
-            retry: 1 // Limit retry attempts
-          }
-        }
+            // Dashboard queries refresh every 30 seconds
+            staleTime: 30 * 1000,
+            // Keep unused data in memory for 10 minutes
+            gcTime: 10 * 60 * 1000,
+            // Prevent aggressive focus refetches
+            refetchOnWindowFocus: false,
+            // Reconnect refetch for realtime reliability
+            refetchOnReconnect: "always",
+            // Limit retry attempts with backoff
+            retry: 2,
+            retryDelay: (attemptIndex) =>
+              Math.min(1000 * 2 ** attemptIndex, 10000),
+          },
+          mutations: {
+            // Retry failed mutations once
+            retry: 1,
+          },
+        },
       })
   );
 

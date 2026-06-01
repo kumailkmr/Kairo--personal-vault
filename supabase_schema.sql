@@ -25,6 +25,10 @@ DROP TABLE IF EXISTS agreements CASCADE;
 DROP TABLE IF EXISTS document_versions CASCADE;
 DROP TABLE IF EXISTS document_templates CASCADE;
 DROP TABLE IF EXISTS documents CASCADE;
+DROP TABLE IF EXISTS meeting_analytics_cache CASCADE;
+DROP TABLE IF EXISTS scheduling_events CASCADE;
+DROP TABLE IF EXISTS follow_up_tasks CASCADE;
+DROP TABLE IF EXISTS closing_pipeline CASCADE;
 DROP TABLE IF EXISTS meeting_activity_logs CASCADE;
 DROP TABLE IF EXISTS meeting_reminders CASCADE;
 DROP TABLE IF EXISTS meeting_notes CASCADE;
@@ -73,16 +77,64 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Trigger to automate user role checks in RLS
+-- Roles Lookup Table
+DROP TABLE IF EXISTS roles CASCADE;
+CREATE TABLE roles (
+    name TEXT PRIMARY KEY,
+    level INTEGER NOT NULL UNIQUE
+);
+
+-- Seed hierarchical roles
+INSERT INTO roles (name, level) VALUES
+  ('owner', 100),
+  ('admin', 80),
+  ('operator', 60),
+  ('assistant', 45),
+  ('client', 10)
+ON CONFLICT (name) DO NOTHING;
+
+-- Hierarchical permission check helpers
+CREATE OR REPLACE FUNCTION has_role_level(user_id UUID, required_level INTEGER)
+RETURNS BOOLEAN AS $$
+DECLARE
+    user_role_level INTEGER;
+BEGIN
+    SELECT r.level INTO user_role_level
+    FROM user_profiles p
+    JOIN roles r ON p.role = r.name
+    WHERE p.id = user_id;
+    
+    RETURN COALESCE(user_role_level >= required_level, FALSE);
+END;
+$$ language 'plpgsql' SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION is_owner(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN has_role_level(user_id, 100);
+END;
+$$ language 'plpgsql' SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION is_admin(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN has_role_level(user_id, 80);
+END;
+$$ language 'plpgsql' SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION is_operator(user_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM user_profiles
-        WHERE id = user_id AND (role = 'OPERATOR' OR role = 'operator')
-    );
+    RETURN has_role_level(user_id, 60);
 END;
-$$ language 'plpgsql';
+$$ language 'plpgsql' SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION is_assistant(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN has_role_level(user_id, 45);
+END;
+$$ language 'plpgsql' SECURITY DEFINER;
 
 -- ==========================================
 -- 2. USERS & PREFERENCES INFRASTRUCTURE
@@ -92,7 +144,7 @@ $$ language 'plpgsql';
 CREATE TABLE user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
-    role TEXT DEFAULT 'CLIENT' CHECK (role IN ('OPERATOR', 'CLIENT', 'operator', 'client')) NOT NULL,
+    role TEXT DEFAULT 'client' REFERENCES roles(name) ON UPDATE CASCADE NOT NULL,
     phone TEXT,
     avatar_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -962,7 +1014,7 @@ CREATE POLICY "Public visitor onboarding submissions" ON onboarding_requests FOR
 CREATE POLICY "Operators manage onboarding requests" ON onboarding_requests FOR ALL TO authenticated USING (is_operator(auth.uid()));
 
 -- ==========================================
-// 16. MEETINGS & CLOSINGS INTELLIGENCE EXTENSIONS
+-- 16. MEETINGS & CLOSINGS INTELLIGENCE EXTENSIONS
 -- ==========================================
 
 -- A. closing_pipeline
@@ -1035,5 +1087,84 @@ CREATE POLICY "Clients view their follow-up tasks" ON follow_up_tasks FOR SELECT
 CREATE POLICY "Operators manage scheduling events" ON scheduling_events FOR ALL TO authenticated USING (is_operator(auth.uid()));
 CREATE POLICY "Clients view their scheduling events" ON scheduling_events FOR SELECT TO authenticated USING (
     client_id IN (SELECT id FROM clients WHERE email = auth.jwt()->>'email')
+);
+CREATE POLICY "Operators manage analytics cache" ON meeting_analytics_cache FOR ALL TO authenticated USING (is_operator(auth.uid()));
+
+-- ==========================================
+-- 17. ROLES POLICY SETUP
+-- ==========================================
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access to roles lookup" ON roles FOR SELECT TO authenticated, anon USING (true);
+CREATE POLICY "Only owners manage roles lookup" ON roles FOR ALL TO authenticated USING (is_owner(auth.uid()));
+
+-- ==========================================
+-- 18. ENTERPRISE AUDIT INTEGRITY TRACKING
+-- ==========================================
+DROP TABLE IF EXISTS audit_logs CASCADE;
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    table_name TEXT,
+    record_id TEXT,
+    details JSONB,
+    severity TEXT DEFAULT 'INFO' CHECK (severity IN ('INFO', 'WARNING', 'CRITICAL')) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Operators manage audit logs" ON audit_logs FOR ALL TO authenticated USING (is_operator(auth.uid()));
+CREATE POLICY "Clients read their own audits" ON audit_logs FOR SELECT TO authenticated USING (
+    user_id = auth.uid()
+);
+
+-- ==========================================
+-- 19. STORAGE BUCKETS PROVISIONING
+-- ==========================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES 
+  ('invoices', 'invoices', false, NULL, NULL),
+  ('agreements', 'agreements', false, NULL, NULL),
+  ('proposals', 'proposals', false, NULL, NULL),
+  ('onboarding', 'onboarding', false, NULL, NULL),
+  ('branding', 'branding', false, NULL, NULL),
+  ('uploads', 'uploads', false, NULL, NULL),
+  ('contracts', 'contracts', false, NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage objects policies
+
+-- Policy A: Operators (owner, admin, operator, assistant) have absolute read/write/delete access to all files
+CREATE POLICY "Allow operators all storage access" ON storage.objects
+FOR ALL TO authenticated
+USING (
+  is_operator(auth.uid()) OR has_role_level(auth.uid(), 45)
+);
+
+-- Policy B: Clients can SELECT files inside their scoped folder 'vault/client_id/...'
+CREATE POLICY "Allow clients select their own folder" ON storage.objects
+FOR SELECT TO authenticated
+USING (
+  bucket_id IN ('invoices', 'agreements', 'proposals', 'onboarding', 'branding', 'uploads', 'contracts')
+  AND (storage.foldername(name))[1] = 'vault'
+  AND EXISTS (
+    SELECT 1 FROM clients c
+    WHERE c.id::text = (storage.foldername(name))[2]
+      AND c.email = auth.jwt()->>'email'
+  )
+);
+
+-- Policy C: Clients can INSERT files inside their scoped folder 'vault/client_id/...'
+CREATE POLICY "Allow clients insert their own folder" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id IN ('invoices', 'agreements', 'proposals', 'onboarding', 'branding', 'uploads', 'contracts')
+  AND (storage.foldername(name))[1] = 'vault'
+  AND EXISTS (
+    SELECT 1 FROM clients c
+    WHERE c.id::text = (storage.foldername(name))[2]
+      AND c.email = auth.jwt()->>'email'
+  )
 );
 

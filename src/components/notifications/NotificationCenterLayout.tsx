@@ -3,14 +3,39 @@
 import React, { useState } from "react";
 import { NotificationFeed } from "./NotificationFeed";
 import { ActivityTimeline } from "./ActivityTimeline";
-import { MOCK_NOTIFICATIONS } from "@/mock";
 import { Filter, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { dbService } from "@/services/db.service";
+import { useDeadlineIntelligence } from "@/hooks/useDeadlineIntelligence";
+import { NotificationItem } from "@/types";
 
 type FilterTab = "all" | "unread" | "deadlines" | "meetings" | "revenue" | "projects" | "system";
 
 export const NotificationCenterLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [view, setView] = useState<"alerts" | "timeline">("alerts");
+
+  const { data: dbNotifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => dbService.getNotifications(),
+    refetchInterval: 60000
+  });
+
+  const { warnings } = useDeadlineIntelligence();
+
+  // Combine DB notifications with intelligence engine warnings
+  const combinedNotifications: NotificationItem[] = [
+    ...dbNotifications,
+    ...warnings.map(w => ({
+      id: w.id,
+      title: w.title,
+      message: `${w.daysRemaining} days remaining for ${w.entityType}`,
+      time: "Just now",
+      read: false,
+      type: "deadline" as const,
+      priority: w.urgency === "critical" ? "critical" : w.urgency === "high" ? "important" : "standard"
+    }))
+  ];
 
   const tabs: { id: FilterTab; label: string }[] = [
     { id: "all", label: "All Signals" },
@@ -22,7 +47,7 @@ export const NotificationCenterLayout: React.FC = () => {
     { id: "system", label: "System Alerts" },
   ];
 
-  const filteredNotifications = MOCK_NOTIFICATIONS.filter((n) => {
+  const filteredNotifications = combinedNotifications.filter((n) => {
     if (activeTab === "all") return true;
     if (activeTab === "unread") return !n.read;
     if (activeTab === "deadlines") return n.type === "deadline";

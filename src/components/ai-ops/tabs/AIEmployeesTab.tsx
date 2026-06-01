@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { MOCK_AI_EMPLOYEES } from "@/mock/ai-ops";
 import { Users, Award, Play, ShieldAlert, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -24,7 +23,7 @@ export const AIEmployeesTab: React.FC = () => {
 
       {/* Grid of Agents */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_AI_EMPLOYEES.map((emp, idx) => (
+        {([] as any[]).map((emp: any, idx: number) => (
           <motion.div 
             key={emp.id}
             initial={{ opacity: 0, scale: 0.96 }}

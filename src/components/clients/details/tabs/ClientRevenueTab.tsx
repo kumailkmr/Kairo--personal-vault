@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import { MOCK_CLIENT_INVOICES } from "@/mock/clients";
+
 import { motion } from "framer-motion";
 import { DollarSign, Download, ArrowUpRight } from "lucide-react";
 
 export const ClientRevenueTab: React.FC = () => {
-  const totalRevenue = MOCK_CLIENT_INVOICES.reduce((acc, inv) => acc + (inv.status === "Paid" ? inv.amount : 0), 0);
-  const pendingRevenue = MOCK_CLIENT_INVOICES.reduce((acc, inv) => acc + (inv.status === "Pending" ? inv.amount : 0), 0);
+  const totalRevenue = ([] as any[]).reduce((acc: any, inv: any) => acc + (inv.status === "Paid" ? inv.amount : 0), 0);
+  const pendingRevenue = ([] as any[]).reduce((acc: any, inv: any) => acc + (inv.status === "Pending" ? inv.amount : 0), 0);
 
   return (
     <motion.div 
@@ -52,7 +52,7 @@ export const ClientRevenueTab: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {MOCK_CLIENT_INVOICES.map(inv => (
+              {([] as any[]).map((inv: any) => (
                 <tr key={inv.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-4 text-sm font-bold text-gray-900">{inv.id.toUpperCase()}</td>
                   <td className="px-6 py-4 text-sm font-semibold font-sans tracking-tight text-gray-900">${inv.amount.toLocaleString()}</td>

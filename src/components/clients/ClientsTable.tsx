@@ -2,10 +2,9 @@
 
 import React from "react";
 import { MoreHorizontal, ArrowRight } from "lucide-react";
-import { CRMClient } from "@/mock/clients";
 
 interface ClientsTableProps {
-  clients: CRMClient[];
+  clients: any[];
   onSelectClient: (id: string) => void;
 }
 
